@@ -98,8 +98,8 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 			'loadingmessage' => __('loading..')
 		));
 		
-		// wp_register_style( 'topic-style', get_template_directory_uri() . '-child/topic-layout/assets/topic-style.css' );
-		// wp_enqueue_style('topic-style');
+		wp_register_style('ifeed-style', plugins_url( 'assets/ifeed-style.css', __FILE__ ), null, '1.0.0', 'all' );
+		wp_enqueue_style('ifeed-style');
 		
 		if( isset($_POST) && count($_POST)>0 ) var_dump($_POST);
 		?>
@@ -141,8 +141,8 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 
 				<table class="form-table ifeed-post-generator">
 					<thead><tr>
-						<th><?php _e("Automatic"); ?></th>
-						<th><?php _e("Manual"); ?></th>
+						<th><?php _e("Automatic Query"); ?></th>
+						<th><?php _e("Preview / Manual"); ?></th>
 					</tr></thead>
 					<tbody>
 					<tr><td class="left ifeed-query-builder">
@@ -163,9 +163,16 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 									</fieldset></td></p>
 								</tr>
 								<tr valign="top">
-									<th scope="row"><?php _e("Time Published"); ?></th>
+									<th scope="row"><?php _e("Time Schedule"); ?></th>
 									<td><fieldset><p> 
-										<input type="text" class="ifeed-query-builder" data-name="from-time" size="20" placeholder="Select Date and Time offset posts should be fetched after" value="" />
+										<input type="text" data-name="hours-array" size="60" placeholder="Hours set, e.g. 10,13,19" value="" />
+										<br/><em><?php _e("Hours set you want ifeed to be changed, delimited by ',' (10,13,19)"); ?></em>
+									</fieldset></td></p>
+								</tr>								
+								<tr valign="top">
+									<th scope="row"><?php _e("Time Published After"); ?></th>
+									<td><fieldset><p> 
+										<input type="text" class="ifeed-query-builder" data-name="time_offset" size="20" placeholder="Select Date and Time offset posts should be fetched after" value="" />
 										<em><?php _e("Leave blank to ignore time offset"); ?></em>
 									</fieldset></td></p>
 								</tr>
@@ -176,6 +183,13 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 										<em><?php _e("Leave blank to fetch from first post"); ?></em>
 									</fieldset></td></p>
 								</tr>
+								<!--<tr valign="top">
+									<th scope="row"><?php _e("Offset increment amount"); ?></th>
+									<td><fieldset><p> 
+										<input type="number" data-name="offset-inc" placeholder="Default=1" value="" />
+										<em><?php _e("Offset increment amount on each step"); ?></em>
+									</fieldset></td></p>
+								</tr>-->
 								<tr valign="top">
 									<th scope="row"><?php _e("Order By"); ?></th>
 									<td><fieldset><p>
@@ -188,17 +202,42 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 										<input type="text" class="ifeed-query-builder" data-name="order" placeholder="Direction of sort" value="ASC" />
 									</fieldset></td></p>
 								</tr>									
-								<tr valign="top">
+								<!-- <tr valign="top">
 									<th scope="row"><?php _e("Number of posts"); ?></th>
 									<td><fieldset><p> 
 										<input type="text" class="ifeed-query-builder" data-name="posts_per_page" placeholder="Number of posts" value="5" />
 									</fieldset></td></p>
-								</tr>								
-								<button class="reload-query" type="button">reload</button>
+								</tr> -->
+								<tr valign="top">
+									<th scope="row"><?php _e("Exclude posts in"); ?></th>
+									<td><fieldset><p>
+										<select class="ifeed-query-builder" data-name="post__not_in">
+											<option value=""><?php _e("ignore"); ?></option>
+											<option value="get_option('sticky_posts')"><?php _e("Sticky Posts"); ?></option>
+										</select>
+									</fieldset></td></p>
+								</tr>
 							</tbody>
 						</table>
 					</td><td class="right ifeed-post-viewer">
-						<div class="query-viewer"></div>
+						<div class="ifeed-preview">
+							<h2><label><input type="checkbox" name="ifeed-query-manual"><span><?php _e("Manual select posts"); ?></span></label><em>&nbsp; (will inhibit automatic query)</em></h2>
+							<em><b>Note:</b> Every change on box below (change in post-id or clearing the list) will tick the "Manual select posts".</em>
+							<br/><br/>
+							<button type="button" data-action="clear-query" class="button ifeed-button-danger"><?php _e("clear list"); ?></button>
+							<button type="button" data-action="reload-query" class="button-secondary"><?php _e("reload"); ?></button>
+							<table>
+								<thead><tr>
+									<th><?php _e("post ID"); ?></th>
+									<th><?php _e("Title"); ?></th>
+									<th><?php _e("Created Date"); ?></th>
+									<th><?php _e("Image"); ?></th>
+									<th><?php _e("Actions"); ?></th>
+								</tr></thead>							
+								<tbody>
+								</tbody>
+							</table>
+						</div>
 					</td></tr>
 					</tbody>
 				</table>
@@ -220,21 +259,35 @@ if(function_exists('ajax_ifeed_load_posts')) {wp_die( __('iFeed-error: Duplicate
 		// First check the nonce, if it fails the function will break
 		check_ajax_referer('ajax-ifeed-panel-nonce', 'security');
 		$query = json_decode(stripslashes($_POST['query']), true);
+		if( isset($query['time_offset']) ) {
+			$query['date_query'] = array('after' => $query['time_offset']);
+			unset($query['time_offset']);
+		}
 		
 		$posts = null;
 		try{
 			$posts = new WP_Query($query);
+			// var_dump($posts);
 		} catch(Exception $e) { echo "Exception:". $e->getMessage();}
 		
-		if ( $post!=null && $posts->have_posts() ) :
+		if ( strlen(serialize($posts))>0 &&  $posts->have_posts() ) :
 			while ( $posts->have_posts() ) : $posts->the_post();
-				the_title();
-				echo ", ";
+				if( !isset($query['p']) ) :
+				?>
+				<tr>
+					<?php endif; ?>
+					<td class="post-id-wrapper"><input type="text" value="<?php the_ID(); ?>" /></td>
+					<td class='title-wrapper'><a title="<?php the_title(); ?>" href="<?php the_permalink(); ?>"><?php the_title(); ?></a></td>
+					<td><?php echo gmdate("Y-m-d", get_the_time('U')); ?></td>
+					<td class='img-wrapper'><?php the_post_thumbnail('thumbnail'); ?></td>
+					<td class='remove'><button type="button" data-action="remove-post-query" class="button-secondary"><?php _e("X"); ?></button></td>
+					<?php if( !isset($query['p']) ) : ?>
+				</tr>
+				<?php endif;
 			endwhile;
 		else :
 			die("empty2");
 		endif;
-		// var_dump($query);
 		die();
 	}
 }
