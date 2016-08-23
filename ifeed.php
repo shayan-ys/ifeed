@@ -232,11 +232,13 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 									<th><?php _e("Title"); ?></th>
 									<th><?php _e("Created Date"); ?></th>
 									<th><?php _e("Image"); ?></th>
+									<th><?php _e("iFeed Exec Time"); ?></th>
 									<th><?php _e("Actions"); ?></th>
 								</tr></thead>							
 								<tbody>
 								</tbody>
 							</table>
+							<button type="button" data-action="add-post-query" class="button-primary"><?php _e("add post"); ?></button>
 						</div>
 					</td></tr>
 					</tbody>
@@ -255,9 +257,46 @@ if(function_exists('ajax_ifeed_load_posts')) {wp_die( __('iFeed-error: Duplicate
 	add_action( 'wp_ajax_ifeed_load_posts', 'ajax_ifeed_load_posts' );
 	function ajax_ifeed_load_posts() {
 		ob_clean();
-		if(!isset($_POST) || !isset($_POST['query']) || !isset($_POST['security']) ) die("empty1");
+		if(!isset($_POST) || !isset($_POST['security']) ) die("empty1");
 		// First check the nonce, if it fails the function will break
 		check_ajax_referer('ajax-ifeed-panel-nonce', 'security');
+		
+		if(!isset($_POST['query']) || $_POST['query']==null || $_POST['query']=="") {
+			?>
+			<tr>
+				<td class="post-id-wrapper"><input type="text" value="" /></td>
+				<td class='title-wrapper'></td>
+				<td></td>
+				<td class='img-wrapper'><img src="<?php echo plugins_url( 'assets/default-placeholder.jpg', __FILE__ ); ?>" /></td>
+				<td class='remove'><button type="button" data-action="remove-post-query" class="button-secondary"><?php _e("X"); ?></button></td>
+			</tr>
+			<?php
+			die();
+		}
+		
+		$hours_set = false;
+		if(isset($_POST['hours_set']) && $_POST['hours_set']!="") {
+			$hours_set = json_decode(stripslashes($_POST['hours_set']), true);
+			if(is_array($hours_set)) {
+				sort($hours_set);
+				$now = new DateTime(null, new DateTimeZone('Asia/Tehran'));
+				$curr_hour = (int)$now->format('h');
+				$ifeed_execution_hour_index = false;
+				for( $i=0; $i<count($hours_set); $i++ ) {
+					if($curr_hour < $hours_set[$i]) {
+						$ifeed_execution_hour_index = $i;
+						break;
+					}
+				}
+				if($ifeed_execution_hour_index===false) {
+					$ifeed_execution_date = new DateTime('tomorrow', new DateTimeZone('Asia/Tehran'));
+					$ifeed_execution_hour_index = 0;
+				} else {
+					$ifeed_execution_date = new DateTime(null, new DateTimeZone('Asia/Tehran'));
+				}
+			}
+		}
+		
 		$query = json_decode(stripslashes($_POST['query']), true);
 		if( isset($query['time_offset']) ) {
 			$query['date_query'] = array('after' => $query['time_offset']);
@@ -269,7 +308,7 @@ if(function_exists('ajax_ifeed_load_posts')) {wp_die( __('iFeed-error: Duplicate
 			$posts = new WP_Query($query);
 			// var_dump($posts);
 		} catch(Exception $e) { echo "Exception:". $e->getMessage();}
-		
+		$index=0;
 		if ( strlen(serialize($posts))>0 &&  $posts->have_posts() ) :
 			while ( $posts->have_posts() ) : $posts->the_post();
 				if( !isset($query['p']) ) :
@@ -280,10 +319,24 @@ if(function_exists('ajax_ifeed_load_posts')) {wp_die( __('iFeed-error: Duplicate
 					<td class='title-wrapper'><a title="<?php the_title(); ?>" href="<?php the_permalink(); ?>"><?php the_title(); ?></a></td>
 					<td><?php echo gmdate("Y-m-d", get_the_time('U')); ?></td>
 					<td class='img-wrapper'><?php the_post_thumbnail('thumbnail'); ?></td>
+					<?php if($hours_set!==false) {
+					?>
+					<td class='execution-time-wrapper'><input type="text" data-name="exec-time" data-id="<?php echo $index; ?>" value="<?php echo $ifeed_execution_date->format('Y-m-d') .' '. $hours_set[$ifeed_execution_hour_index].':00'; ?>" /></td>
+					<?php 
+						$ifeed_execution_hour_index++;
+						if( $ifeed_execution_hour_index == count($hours_set) ) {
+							$ifeed_execution_hour_index=0;
+							$ifeed_execution_date->modify('+1 day');
+						}
+					} else { /* if hours_set = false */
+					?>
+					<td class='execution-time-wrapper'>Unknown time</td>
+					<?php } /* endif hours_set != false */ ?>
 					<td class='remove'><button type="button" data-action="remove-post-query" class="button-secondary"><?php _e("X"); ?></button></td>
 					<?php if( !isset($query['p']) ) : ?>
 				</tr>
 				<?php endif;
+				$index++;
 			endwhile;
 		else :
 			die("empty2");
