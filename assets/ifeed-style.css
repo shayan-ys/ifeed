@@ -14,4 +14,5 @@
 .ifeed-post-generator .ifeed-preview > table > tbody > tr > td.img-wrapper {width:60px; height:60px;}
 .ifeed-post-generator .ifeed-preview > table > tbody > tr > td.img-wrapper > img {width:60px; height:60px;}
 .ifeed-post-generator .ifeed-preview > table > tbody > tr > td.execution-time-wrapper > input {width: 130px;}
+.ifeed-post-generator .ifeed-preview > table > tbody > tr > td input.error {border-color: #d9534f!important;}
 .ifeed-button-danger { background: #d9534f none repeat scroll 0 0!important; border-color: #ac2925!important; box-shadow: 0 1px 0 #ac2925!important; color: #ffffff!important;}

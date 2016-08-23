@@ -6,6 +6,9 @@ jQuery(document).ready(function($){
 		ifeed_switchto_manual_query();
 		query_presenter.html(" ");
 	});
+	$(".ifeed-query-builder").on("change", 'input,select', function(){
+		ifeed_update_preview();
+	});
 	$(".ifeed-post-generator").on("click", '[data-action="reload-query"]', function(){
 		// load posts via query generated
 		ifeed_update_preview();
@@ -35,6 +38,12 @@ jQuery(document).ready(function($){
 		$(this).closest("tr").remove();
 	});
 	$(".ifeed-post-generator").on("change", '[data-name="exec-time"]', function(){
+		if( Date.parse( $(this).val() ) < $.now() ) {
+			$(this).addClass("error");
+			return;
+		}
+		$(this).removeClass("error");
+		
 		var input_id = $(this).attr("data-id");
 		var changed_value = $(this).val();
 		ifeed_switchto_manual_query();
@@ -42,7 +51,7 @@ jQuery(document).ready(function($){
 		query_presenter.addClass("loading");
 		ifeed_sort_by_date();
 		query_presenter.find('[data-id="'+input_id+'"]').val(changed_value);
-		query_presenter.removeClass("loading");
+			query_presenter.removeClass("loading");
 	});
 	$(".ifeed-post-generator").on("change", '.post-id-wrapper input', function(){
 		// update single post row
@@ -67,7 +76,15 @@ jQuery(document).ready(function($){
 				'query': query
 			},
 			success: function (data) {
+				if( data=="empty_security" ) {
+					alert("security error!");
+					return;
+				}
 				td_id_wrapper.closest("tr").removeClass("loading");
+				if( data=="empty_post" ) {
+					td_id_wrapper.find("input").addClass("error");
+					return;
+				}
 				td_id_wrapper.closest("tr").html( data );
 			}
 		});	
@@ -80,7 +97,19 @@ jQuery(document).ready(function($){
 });
 
 function ifeed_switchto_manual_query() {
+	jQuery('[name="ifeed-settings"]').find('[name="ifeed-manual-posts"]').val( ifeed_stringify_manual_posts() );
 	jQuery(".ifeed-post-generator").find('[name="ifeed-query-manual"]').prop('checked', true);
+}
+
+function ifeed_stringify_manual_posts() {
+	var manual_posts = [];
+	query_presenter.find("tr").each(function(index){
+		var tr = {};
+		tr.post_id = jQuery(this).find(".post-id-wrapper input").val();
+		tr.exec_time = jQuery(this).find('[data-name="exec-time"]').val();
+		manual_posts.push(tr);
+	});
+	return JSON.stringify( manual_posts );
 }
 
 function ifeed_sort_by_date() {
@@ -105,9 +134,10 @@ function ifeed_sort_by_date() {
 
 function ifeed_update_preview() {
 	var query = ifeed_query_creator();
-	query.posts_per_page = 10;
 	query.post_type = "post";
 	query.post_status = "publish";
+	jQuery('[name="ifeed-settings"]').find('[name="ifeed-auto-query"]').val(JSON.stringify( jQuery.extend({hours_set:JSON.stringify(ifeed_hours_set())}, query) ));
+	query.posts_per_page = 10;
 	ifeed_load_posts( JSON.stringify(query) );
 }
 
@@ -152,6 +182,12 @@ function ifeed_load_posts(query) {
 			'hours_set': JSON.stringify(ifeed_hours_set())
 		},
 		success: function (data) {
+			if( data=="empty_security" ) {
+				alert("security error!");
+				return;
+			}
+			if( data=="empty_post" ) data="";
+			
 			query_presenter.removeClass("loading");
 			query_presenter.html( data );
 		}

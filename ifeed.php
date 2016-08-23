@@ -80,6 +80,70 @@ if(function_exists('ifeed_options_page')) {wp_die( __('iFeed-error: Duplicate fu
 		<?php
 	}
 }
+if(function_exists('ifeed_save_options_db')) {wp_die( __('iFeed-error: Duplicate function name, remove function: "ifeed_save_options_db"') );} else {
+	function ifeed_save_options_db($vals) {
+		global $wpdb;
+		$table_name = $wpdb->prefix.'ifeed';
+		if($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+			//table not in database. Create new table
+			$charset_collate = $wpdb->get_charset_collate();
+
+			// $sql = "CREATE TABLE $table_name (
+				// id mediumint(9) NOT NULL AUTO_INCREMENT,
+				// slug text NOT NULL,
+				// utm text,
+				// desc text,
+				// is_manual boolean NOT NULL,
+				// query text NOT NULL,
+				// active boolean NOT NULL,
+				// UNIQUE KEY id (id)
+				// ) $charset_collate;";
+			// require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+			// dbDelta( $sql );
+			
+			// $sql = "CREATE TABLE " . $table_name . " (
+				// id INT NOT NULL AUTO_INCREMENT, 
+				// slug TEXT NOT NULL,				
+				// utm TEXT NOT NULL,	
+				// desc TEXT NOT NULL,	
+				// is_manual TEXT NOT NULL,	
+				// query TEXT NOT NULL,	
+				// active TEXT NOT NULL,	
+				// PRIMARY KEY  (id)
+			// ) ". $charset_collate .";";
+			// require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+			// dbDelta($sql);
+			
+			$sql = "CREATE TABLE " . $table_name . " (
+				id INT NOT NULL AUTO_INCREMENT, 
+				slug TEXT NOT NULL,				
+				utm TEXT NOT NULL,	
+				desc TEXT NOT NULL,	
+				manual TEXT NOT NULL,	
+				query TEXT NOT NULL,	
+				active TEXT NOT NULL,	
+				PRIMARY KEY  (id)
+			) ". $charset_collate .";";
+			require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+			dbDelta($sql);
+			
+			echo "created ".$table_name."?";
+		} else {
+			echo "already exists";
+		}
+		
+		$is_manual = (isset($vals['ifeed-query-manual']))? true : false;
+		
+		$wpdb->insert($table_name, array(
+			'slug' => $vals['ifeed-slug'],
+			'utm' => $vals['ifeed-utm'],
+			'desc' => $vals['ifeed-desc'],
+			'is_manual' => $is_manual,
+			'query' => ($is_manual)? $vals['ifeed-manual-posts'] : $vals['ifeed-auto-query'],
+			'active' => $vals['ifeed-active']
+		));
+	}
+}
 if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplicate function name, remove function: "ifeed_options_page_edit"') );} else {
 	function ifeed_options_page_edit() {
 
@@ -100,8 +164,31 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 		
 		wp_register_style('ifeed-style', plugins_url( 'assets/ifeed-style.css', __FILE__ ), null, '1.0.0', 'all' );
 		wp_enqueue_style('ifeed-style');
-		
-		if( isset($_POST) && count($_POST)>0 ) var_dump($_POST);
+
+		$vals = array();		
+		if( isset($_POST) && count($_POST)>0 ) {
+			$vals = $_POST;
+			if( isset($vals['ifeed-auto-query']) )
+				$vals['ifeed-auto-query'] = stripslashes($vals['ifeed-auto-query']);
+			if( isset($vals['ifeed-manual-posts']) )
+				$vals['ifeed-manual-posts'] = stripslashes($vals['ifeed-manual-posts']);
+			if( isset($vals['ifeed-auto-query']['hours_set']) )
+				$vals['ifeed-auto-query']['hours_set'] = stripslashes($vals['ifeed-auto-query']['hours_set']);
+			if( isset($vals['submit']) )
+				$vals['ifeed-active'] = ($vals['submit']=="Draft")? false : true;
+			
+			echo "<pre>";
+			var_dump($vals);
+			echo "</pre>";
+			if(function_exists('ifeed_save_options_db')) {
+				ifeed_save_options_db($valse);
+			} else {
+				// saved failed function ifeed_save_options_db doesn't exists !
+			}
+			
+			$vals['ifeed-auto-query'] = json_decode($vals['ifeed-auto-query'], true);
+			$vals['ifeed-auto-query']['hours_set'] = implode("," ,  json_decode($vals['ifeed-auto-query']['hours_set'], true)  );
+		}
 		?>
 		
 		<div class="wrap">
@@ -113,27 +200,23 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 						<tr valign="top">
 							<th scope="row"><?php _e("iFeed Slug:"); ?></th>
 							<td><fieldset><p> 
-								<input type="text" name="ifeed-slug" size="20" placeholder="Unique name for iFeed" value=""/>
+								<input type="text" name="ifeed-slug" size="20" placeholder="Unique name for iFeed" value="<?php echo $vals['ifeed-slug']; ?>"/>
 								&nbsp;<em><?php _e("Unique name for ifeed, also will be used for calling ifeed by URL"); ?></em>
 							</fieldset></td></p>
 						</tr>
 						<tr valign="top">
 							<th scope="row"><?php _e("iFeed UTM:"); ?></th>
 							<td><fieldset><p> 
-								<input type="text" name="ifeed-utm" size="50" placeholder="UTM source and campaign for URLs" value="" />
+								<input type="text" name="ifeed-utm" size="50" placeholder="UTM source and campaign for URLs" value="<?php echo $vals['ifeed-utm']; ?>" />
 								&nbsp;<em><?php _e("UTM url query you want to append to posts (leave it blank for no UTM)"); ?></em>
 							</fieldset></td></p>
 						</tr>
 						<tr valign="top">
 							<th scope="row"><?php _e("iFeed Description:"); ?></th>
 							<td><fieldset><p> 
-									<textarea name="ifeed-desc" rows="3" placeholder="Describe what this iFeed is"></textarea>
+								<textarea name="ifeed-desc" rows="3" placeholder="Describe what this iFeed is"><?php echo $vals['ifeed-desc']; ?></textarea>
 							</fieldset></td></p>
-						</tr>
-						<tr valign="top">
-							<th scope="row"></th>
-							<td><fieldset><p></p></fieldset></td>
-						</tr>						
+						</tr>					
 					</tbody>
 				</table>
 				
@@ -151,35 +234,35 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 								<tr valign="top">
 									<th scope="row"><?php _e("Tag"); ?></th>
 									<td><fieldset><p> 
-										<input type="text" class="ifeed-query-builder"  data-name="tag" size="20" placeholder="Filter posts by a specific tag" value="" />
+										<input type="text" class="ifeed-query-builder"  data-name="tag" size="20" placeholder="Filter posts by a specific tag" value="<?php echo $vals['ifeed-auto-query']['tag'] ?>" />
 										<em><?php _e("Leave blank to fetch all tags"); ?></em>
 									</fieldset></td></p>
 								</tr>
 								<tr valign="top">
 									<th scope="row"><?php _e("Category"); ?></th>
 									<td><fieldset><p> 
-										<input type="text" class="ifeed-query-builder" data-name="cat" size="20" placeholder="Filter posts by a specific category" value="" />
+										<input type="text" class="ifeed-query-builder" data-name="cat" size="20" placeholder="Filter posts by a specific category" value="<?php echo $vals['ifeed-auto-query']['cat'] ?>" />
 										<em><?php _e("Leave blank to fetch all categories"); ?></em>
 									</fieldset></td></p>
 								</tr>
 								<tr valign="top">
 									<th scope="row"><?php _e("Time Schedule"); ?></th>
 									<td><fieldset><p> 
-										<input type="text" data-name="hours-array" size="60" placeholder="Hours set, e.g. 10,13,19" value="" />
+										<input type="text" data-name="hours-array" size="60" placeholder="Hours set, e.g. 10,13,19" value="<?php echo $vals['ifeed-auto-query']['hours_set'] ?>" />
 										<br/><em><?php _e("Hours set you want ifeed to be changed, delimited by ',' (10,13,19)"); ?></em>
 									</fieldset></td></p>
 								</tr>								
 								<tr valign="top">
 									<th scope="row"><?php _e("Time Published After"); ?></th>
 									<td><fieldset><p> 
-										<input type="text" class="ifeed-query-builder" data-name="time_offset" size="20" placeholder="Select Date and Time offset posts should be fetched after" value="" />
+										<input type="text" class="ifeed-query-builder" data-name="time_offset" size="20" placeholder="Select Date and Time offset posts should be fetched after" value="<?php echo $vals['ifeed-auto-query']['time_offset'] ?>" />
 										<em><?php _e("Leave blank to ignore time offset"); ?></em>
 									</fieldset></td></p>
 								</tr>
 								<tr valign="top">
 									<th scope="row"><?php _e("Offset"); ?></th>
 									<td><fieldset><p> 
-										<input type="number" class="ifeed-query-builder" data-name="offset" placeholder="Offset on selected posts" value="" />
+										<input type="number" class="ifeed-query-builder" data-name="offset" placeholder="Offset on selected posts" value="<?php echo $vals['ifeed-auto-query']['offset'] ?>" />
 										<em><?php _e("Leave blank to fetch from first post"); ?></em>
 									</fieldset></td></p>
 								</tr>
@@ -193,13 +276,13 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 								<tr valign="top">
 									<th scope="row"><?php _e("Order By"); ?></th>
 									<td><fieldset><p>
-										<input type="text" class="ifeed-query-builder" data-name="orderby" placeholder="Order By" value="post_date" />
+										<input type="text" class="ifeed-query-builder" data-name="orderby" placeholder="Order By" value="<?php echo ($vals['ifeed-auto-query']['orderby']!="")? $vals['ifeed-auto-query']['orderby'] : "post_date" ?>" />
 									</fieldset></td></p>
 								</tr>
 								<tr valign="top">
 									<th scope="row"><?php _e("Ascending or Decending"); ?></th>
 									<td><fieldset><p> 
-										<input type="text" class="ifeed-query-builder" data-name="order" placeholder="Direction of sort" value="ASC" />
+										<input type="text" class="ifeed-query-builder" data-name="order" placeholder="Direction of sort" value="<?php echo ($vals['ifeed-auto-query']['order']!="")? $vals['ifeed-auto-query']['order'] : "ASC" ?>" />
 									</fieldset></td></p>
 								</tr>									
 								<!-- <tr valign="top">
@@ -212,8 +295,8 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 									<th scope="row"><?php _e("Exclude posts in"); ?></th>
 									<td><fieldset><p>
 										<select class="ifeed-query-builder" data-name="post__not_in">
-											<option value=""><?php _e("ignore"); ?></option>
-											<option value="get_option('sticky_posts')"><?php _e("Sticky Posts"); ?></option>
+											<option value="" <?php echo (!isset($vals['ifeed-auto-query']['post__not_in']))? 'selected="selected"' : ''; ?>><?php _e("ignore"); ?></option>
+											<option value="get_option('sticky_posts')" <?php echo ($vals['ifeed-auto-query']['post__not_in']=="get_option('sticky_posts')")? 'selected="selected"' : ''; ?> ><?php _e("Sticky Posts"); ?></option>
 										</select>
 									</fieldset></td></p>
 								</tr>
@@ -221,7 +304,7 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 						</table>
 					</td><td class="right ifeed-post-viewer">
 						<div class="ifeed-preview">
-							<h2><label><input type="checkbox" name="ifeed-query-manual"><span><?php _e("Manual select posts"); ?></span></label><em>&nbsp; (will inhibit automatic query)</em></h2>
+							<h2><label><input type="checkbox" name="ifeed-query-manual" <?php echo (isset($vals['ifeed-query-manual']))? 'checked="checked"' : ""; ?>><span><?php _e("Manual select posts"); ?></span></label><em>&nbsp; (will inhibit automatic query)</em></h2>
 							<em><b>Note:</b> Every change on box below (change in post-id or clearing the list) will tick the "Manual select posts".</em>
 							<br/><br/>
 							<button type="button" data-action="clear-query" class="button ifeed-button-danger"><?php _e("clear list"); ?></button>
@@ -244,8 +327,12 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 					</tbody>
 				</table>
 				
+				<input type="hidden" name="ifeed-auto-query" value='<?php echo $_POST['ifeed-auto-query'] ?>' />
+				<input type="hidden" name="ifeed-manual-posts" value='<?php echo $vals['ifeed-manual-posts'] ?>' />
+				
 				<p class="submit">
-					<input type="submit" name="Submit" class="button-primary" value="<?php esc_attr_e('Save Changes') ?>" />
+					<input type="submit" name="submit" class="button-primary" value="Save & Active" />
+					<input type="submit" name="submit" class="button-secondary" value="Draft" />
 				</p>
 
 			</form>
@@ -257,7 +344,7 @@ if(function_exists('ajax_ifeed_load_posts')) {wp_die( __('iFeed-error: Duplicate
 	add_action( 'wp_ajax_ifeed_load_posts', 'ajax_ifeed_load_posts' );
 	function ajax_ifeed_load_posts() {
 		ob_clean();
-		if(!isset($_POST) || !isset($_POST['security']) ) die("empty1");
+		if(!isset($_POST) || !isset($_POST['security']) ) die("empty_security");
 		// First check the nonce, if it fails the function will break
 		check_ajax_referer('ajax-ifeed-panel-nonce', 'security');
 		
@@ -330,7 +417,7 @@ if(function_exists('ajax_ifeed_load_posts')) {wp_die( __('iFeed-error: Duplicate
 						}
 					} else { /* if hours_set = false */
 					?>
-					<td class='execution-time-wrapper'>Unknown time</td>
+					<td class='execution-time-wrapper'><input type="text" data-name="exec-time" data-id="<?php echo $index; ?>" value="Unknown" /></td>
 					<?php } /* endif hours_set != false */ ?>
 					<td class='remove'><button type="button" data-action="remove-post-query" class="button-secondary"><?php _e("X"); ?></button></td>
 					<?php if( !isset($query['p']) ) : ?>
@@ -339,15 +426,9 @@ if(function_exists('ajax_ifeed_load_posts')) {wp_die( __('iFeed-error: Duplicate
 				$index++;
 			endwhile;
 		else :
-			die("empty2");
+			die("empty_post");
 		endif;
 		die();
-	}
-}
-
-if(function_exists('ifeed_save_options_db')) {wp_die( __('iFeed-error: Duplicate function name, remove function: "ifeed_save_options_db"') );} else {
-	function ifeed_save_options_db() {
-		
 	}
 }
 /** WP-admin **/
