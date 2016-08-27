@@ -11,6 +11,8 @@ function ifeed_create_table_db($table_name) {
 		manual INT NOT NULL,
 		query TEXT NOT NULL,
 		offset INT DEFAULT 0,
+		online_posts TEXT,
+		log_posts TEXT,
 		agent TEXT NOT NULL,
 		active INT NOT NULL,
 		PRIMARY KEY  (id)
@@ -71,9 +73,6 @@ if(function_exists('ifeed_save_options_db')) {wp_die( __('iFeed-error: Duplicate
 			$query_format[] = '%d';
 		}
 		
-		var_dump($vals['offset']);
-		// die();
-		
 		if( isset($vals['offset']) && $vals['offset']!=null && $vals['offset']!="" && $vals['offset']!==false ) {
 			$query_vars['offset'] = intval($vals['offset']);
 			$query_format[] = '%d';
@@ -83,6 +82,23 @@ if(function_exists('ifeed_save_options_db')) {wp_die( __('iFeed-error: Duplicate
 			$wpdb->replace($table_name, $query_vars, $query_format);
 			return $wpdb->insert_id;
 		} elseif($query_type=="update") {
+			if( !function_exists('ifeed_update_options_db') ) {wp_die( __('iFeed-error: function not found, include function: "ifeed_update_options_db"') );} else {
+				$result = ifeed_update_options_db($ifeed_ID, $query_vars, $query_format);
+				if($result)
+					return $ifeed_ID;
+			}
+			return false;
+		}
+		// echo $wpdb->last_query;
+	}
+}
+
+if(function_exists('ifeed_update_options_db')) {wp_die( __('iFeed-error: Duplicate function name, remove function: "ifeed_update_options_db"') );} else {
+	function ifeed_update_options_db($ifeed_ID, $query_vars, $query_format) {
+		global $wpdb, $current_user;
+		$table_name = $wpdb->prefix.'ifeed';
+		
+		try{
 			$wpdb->update(
 				$table_name, 
 				$query_vars,
@@ -90,9 +106,8 @@ if(function_exists('ifeed_save_options_db')) {wp_die( __('iFeed-error: Duplicate
 				$query_format,
 				array('%d')
 			);
-			return $ifeed_ID;
-		}
-		// echo $wpdb->last_query;
+			return true;
+		} catch(Exception $e) {return false;}
 	}
 }
 
@@ -115,9 +130,8 @@ function ifeed_get_value_db($key, $value) {
 	return $result;
 }
 
-function ifeed_get_options_db($ifeed_id) {
-	if($ifeed_id==null || $ifeed_id=="" || intval($ifeed_id)<0)
-		$ifeed_id = 0;
+function ifeed_get_options_db($ifeed_id, $output=ARRAY_A) {
+
 	global $wpdb;
 	$table_name = $wpdb->prefix.'ifeed';
 	if($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
@@ -126,48 +140,27 @@ function ifeed_get_options_db($ifeed_id) {
 		}
 	}
 	$result = null;
-	$query = "SELECT * FROM ".$table_name." WHERE id = ".$ifeed_id;
+	$query_by_id = "SELECT * FROM ".$table_name." WHERE id = ".$ifeed_id;
+	$query_all = "SELECT * FROM ".$table_name;
 	try {
-		$result = $wpdb->get_row( $query, ARRAY_A);
-		/** parse data **/
-		$result['ifeed-slug'] = isset($result['slug'])? $result['slug'] : "";
-		$result['ifeed-utm'] = isset($result['utm'])? $result['utm'] : "";
-		$result['ifeed-desc'] = isset($result['description'])? $result['description'] : "";
-		$result['ifeed-active'] = isset($result['active'])? $result['active'] : "";
-		if(isset($result['manual']) && $result['manual']=="1") {
-			$result['ifeed-query-manual'] = "1";
-			$result['ifeed-manual-posts'] = isset($result['query'])? $result['query'] : "";
+		if($ifeed_id!=null && $ifeed_id!="" && intval($ifeed_id)>=0 ) {
+			$result = $wpdb->get_row( $query_by_id, ARRAY_A);
+			/** parse data **/
+			$result['ifeed-slug'] = isset($result['slug'])? $result['slug'] : "";
+			$result['ifeed-utm'] = isset($result['utm'])? $result['utm'] : "";
+			$result['ifeed-desc'] = isset($result['description'])? $result['description'] : "";
+			$result['ifeed-active'] = isset($result['active'])? $result['active'] : "";
+			if(isset($result['manual']) && $result['manual']=="1") {
+				$result['ifeed-query-manual'] = "1";
+				$result['ifeed-manual-posts'] = isset($result['query'])? $result['query'] : "";
+			} else {
+				$result['ifeed-auto-query'] = isset($result['query'])? $result['query'] : "";
+			}			
 		} else {
-			$result['ifeed-auto-query'] = isset($result['query'])? $result['query'] : "";
+			$result = $wpdb->get_results( $query_all, $output);
 		}
 		
 	} catch (Exception $e) {wp_die( __('iFeed-error: DB error for query "'.$query.'" exception="'.$e->getMessage().'" ') );}
 	return $result;
-}
-
-
-/** Author blog: http://www.wpbeginner.com/wp-themes/how-to-add-user-browser-and-os-classes-in-wordpress-body-class/ **/
-function mv_browser_body_class($classes) {
-	global $is_lynx, $is_gecko, $is_IE, $is_opera, $is_NS4, $is_safari, $is_chrome, $is_iphone;
-	if($is_lynx) $classes[] = 'lynx';
-	elseif($is_gecko) $classes[] = 'gecko';
-	elseif($is_opera) $classes[] = 'opera';
-	elseif($is_NS4) $classes[] = 'ns4';
-	elseif($is_safari) $classes[] = 'safari';
-	elseif($is_chrome) $classes[] = 'chrome';
-	elseif($is_IE) {
-		$classes[] = 'ie';
-		if(preg_match('/MSIE ([0-9]+)([a-zA-Z0-9.]+)/', $_SERVER['HTTP_USER_AGENT'], $browser_version))
-		$classes[] = 'ie'.$browser_version[1];
-	} else $classes[] = 'unknown';
-	if($is_iphone) $classes[] = 'iphone';
-	if ( stristr( $_SERVER['HTTP_USER_AGENT'],"mac") ) {
-		$classes[] = 'osx';
-	} elseif ( stristr( $_SERVER['HTTP_USER_AGENT'],"linux") ) {
-		$classes[] = 'linux';
-	} elseif ( stristr( $_SERVER['HTTP_USER_AGENT'],"windows") ) {
-		$classes[] = 'windows';
-	}
-	return $classes;
 }
 ?>

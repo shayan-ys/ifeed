@@ -19,4 +19,5 @@
 /** GENERAL **/
 [name="ifeed-settings"] input.error {border-color: #d9534f!important;}
 [name="ifeed-settings"] p.error {color: #d9534f!important;}
+[name="ifeed-settings"] [readonly="readonly"] {cursor:not-allowed!important;}
 .ifeed-button-danger { background: #d9534f none repeat scroll 0 0!important; border-color: #ac2925!important; box-shadow: 0 1px 0 #ac2925!important; color: #ffffff!important;}

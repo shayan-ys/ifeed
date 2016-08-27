@@ -43,6 +43,40 @@ include_once( plugin_dir_path( __FILE__ ) . 'ifeed_ajax_post_loader.php' );
 if( !function_exists('ifeed_ajax_post_loader') ) {wp_die( __('iFeed-error: function not found, include function: "ifeed_ajax_post_loader"') );} else {
 	add_action( 'wp_ajax_ifeed_load_posts', 'ifeed_ajax_post_loader' );
 }
-/** WP-admin **/
+/** WP-admin END **/
+
+/** RSS iFeed **/
+add_action('init', 'ifeed_RSS');
+function ifeed_RSS(){ add_feed('ifeed', 'ifeed_RSS_func'); }
+function ifeed_RSS_func(){ get_template_part('rss', 'ifeed'); }
+/** RSS iFeed END **/
+
+if( !function_exists('ifeed_detect_page_refresh') ) {wp_die( __('iFeed-error: function not found, include function: "ifeed_detect_page_refresh"') );} else {
+	add_action('template_redirect', 'ifeed_detect_page_refresh');
+}
+function ifeed_detect_page_refresh() {
+    $queried_object = get_queried_object();
+	$message = '';
+    if($queried_object->post_name == "ifeed-refresh") { // ifeed-refresh
+		if( $_GET['key'] != '123' || current_user_can('manage_options') ) {
+			include_once( plugin_dir_path( __FILE__ ) . 'ifeed_refresher.php' );
+			if( !function_exists('ifeed_refresher') ) {wp_die( __('iFeed-error: function not found, include function: "ifeed_refresher"') );} else {
+				$message = ifeed_refresher();
+			}
+		} else {
+			wp_redirect( site_url() );
+		}
+		// if( !current_user_can('edit_posts') )
+		// if( !current_user_can('manage_options') )
+		// if( in_array('administrator',  wp_get_current_user()->roles) )
+    } else {
+        // for normal pages nothing would happens here.
+        return;
+    }
+	add_filter('the_content',
+	function($content) use ($message) {
+		return $message;
+	});
+}
 
 ?>

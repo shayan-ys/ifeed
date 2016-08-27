@@ -50,9 +50,8 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 			
 			if( count($input_errors)==0 ) {
 				if( function_exists('ifeed_save_options_db')) {
-					$old_ID = $ifeed_ID;
 					$ifeed_ID = ifeed_save_options_db($vals);
-					if($old_ID != $ifeed_ID) {
+					if(!isset($_GET) || !isset($_GET['ifeed']) || $_GET['ifeed'] != $ifeed_ID) {
 						$params = array_merge($_GET, array("ifeed" => $ifeed_ID));
 						$actual_link = "http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
 						$actual_link=strtok($actual_link,'?');
@@ -94,13 +93,13 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 			<form name="ifeed-settings" method="post" action="">
 				<?php wp_nonce_field('ajax-ifeed-panel-nonce', 'security'); ?>
 				<input type="hidden" name="ifeed_id" value="<?php echo $ifeed_ID; ?>" />
-				<?php echo (count($input_errors)>0)? '<p class="error">You have some errors in your input shown by red border.</p>' : ''; ?>
+				<?php echo (count($input_errors)>0)? '<p class="error">You have some errors in your input shown by red border.</p>' : ""; ?>
 				<table class="form-table">
 					<tbody>
 						<tr valign="top">
 							<th scope="row"><?php _e("iFeed Slug:"); ?></th>
 							<td><fieldset><p> 
-								<input type="text" name="ifeed-slug" class="<?php echo (isset($input_errors['ifeed-slug']))? 'error' : ''; ?>" size="20" placeholder="Unique name for iFeed" value="<?php echo $vals['ifeed-slug']; ?>"/>
+								<input type="text" name="ifeed-slug" class="<?php echo (isset($input_errors['ifeed-slug']))? 'error '.$input_errors['ifeed-slug'] : ''; ?>" <?php echo ($ifeed_ID=="")? "" : 'readonly="readonly"' ?> size="20" placeholder="Unique name for iFeed" value="<?php echo $vals['ifeed-slug']; ?>"/>
 								&nbsp;<em><?php _e("Unique name for ifeed, also will be used for calling ifeed by URL"); ?></em>
 							</fieldset></td></p>
 						</tr>
