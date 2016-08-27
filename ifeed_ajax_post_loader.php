@@ -57,15 +57,21 @@ if(function_exists('ifeed_ajax_post_loader')) {wp_die( __('iFeed-error: Duplicat
 			// }
 		}
 		
+		if(isset($query['post__not_in']) && $query['post__not_in'] !== false) {
+			$query['post__not_in'] = json_decode($query['post__not_in'], true);
+		}
+		
 		$posts = null;
 		try{
 			$posts = new WP_Query($query);
+			// var_dump($query);
 			// var_dump($posts);
 		} catch(Exception $e) { echo "Exception:". $e->getMessage();}
 		$index=0;
 		if ( strlen(serialize($posts))>0 &&  $posts->have_posts() ) :
 			while ( $posts->have_posts() ) : $posts->the_post();
 
+				if( in_array(get_the_ID(), $query['post__not_in'] ) ) continue;
 				$execution_string = "Unknown";
 				if($hours_set!==false) {
 					$execution_string = $ifeed_execution_date->format('Y-m-d') .' '. $hours_set[$ifeed_execution_hour_index].':00';

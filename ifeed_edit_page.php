@@ -215,7 +215,7 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 									<td><fieldset><p>
 										<select class="ifeed-query-builder" data-name="post__not_in">
 											<option value="" <?php echo (!isset($vals['ifeed-auto-query']['post__not_in']))? 'selected="selected"' : ''; ?>><?php _e("ignore"); ?></option>
-											<option value="get_option('sticky_posts')" <?php echo ($vals['ifeed-auto-query']['post__not_in']=="get_option('sticky_posts')")? 'selected="selected"' : ''; ?> ><?php _e("Sticky Posts"); ?></option>
+											<option value="<?php echo json_encode(get_option('sticky_posts')); ?>" <?php echo ($vals['ifeed-auto-query']['post__not_in']=="get_option('sticky_posts')")? 'selected="selected"' : ''; ?> ><?php _e("Sticky Posts"); ?></option>
 										</select>
 										<br /><em><b><?php _e("Caution"); ?></b>:&nbsp;<?php _e("changing this value will reset the offset."); ?></em>
 									</fieldset></td></p>
