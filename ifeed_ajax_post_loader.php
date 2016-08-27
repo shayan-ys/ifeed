@@ -7,18 +7,12 @@ if(function_exists('ifeed_ajax_post_loader')) {wp_die( __('iFeed-error: Duplicat
 		check_ajax_referer('ajax-ifeed-panel-nonce', 'security');
 		
 		if(!isset($_POST['query']) || $_POST['query']==null || $_POST['query']=="") {
-			?>
-			<tr>
-				<td class="post-id-wrapper"><input type="text" value="" /></td>
-				<td class='title-wrapper'></td>
-				<td></td>
-				<td class='img-wrapper'><img src="<?php echo plugins_url( 'assets/default-placeholder.jpg', __FILE__ ); ?>" /></td>
-				<td class='remove'><button type="button" data-action="remove-post-query" class="button-secondary"><?php _e("X"); ?></button></td>
-			</tr>
-			<?php
+			$placeholder = "<img src=". plugins_url( 'assets/default-placeholder.jpg', __FILE__ ) ." />";
+			$index = (isset($_POST['data_id']))? $_POST['data_id'] : rand();
+			ifeed_print_post_row("", "", "", "", $placeholder, $index, "Unknown");
 			die();
 		}
-				
+
 		$hours_set = false;
 		if(isset($_POST['hours_set']) && $_POST['hours_set']!="") {
 			$hours_set = json_decode(stripslashes($_POST['hours_set']), true);
@@ -82,6 +76,7 @@ if(function_exists('ifeed_ajax_post_loader')) {wp_die( __('iFeed-error: Duplicat
 						$ifeed_execution_date->modify('+1 day');
 					}
 				}
+				$index = (isset($_POST['data_id']))? $_POST['data_id'] : $index;
 				ifeed_print_post_row(get_the_ID(), get_the_title(), get_the_permalink(), gmdate("Y-m-d", get_the_time('U')), get_the_post_thumbnail(null,'thumbnail'), $index, $execution_string, (!isset($query['p'])));
 				$index++;
 			endwhile;

@@ -5,11 +5,51 @@ jQuery(document).ready(function($){
 	if( ! jQuery(".ifeed-post-generator").find('[name="ifeed-query-manual"]').prop('checked') )
 		ifeed_update_preview();
 	
+	if( $("#redirect_url").length ) {
+		window.location.href = $("#redirect_url").attr("href");
+	}
+	
+	$(".ifeed-post-generator").find('[data-action="custom-offset"]').prop('checked', false);
+	
+	$(".ifeed-post-generator").on("change", '[data-name="offset"]', function(){
+		var this_val = $(this).val();
+		$(".ifeed-post-generator").find('[name="offset"]').val(this_val);
+		$(".ifeed-post-generator").find('[data-action="offset-value"]').text(this_val);
+		ifeed_update_preview();
+	});
+	
+	$(".ifeed-post-generator").on("change", '[data-action="custom-offset"]', function(){
+		if( $(this).prop('checked') ) {
+			$(this).closest("td").find('[data-action="reset-offset"]').hide();
+			$(this).closest("td").find('[data-name="offset"]').show();
+		} else {
+			$(this).closest("td").find('[data-action="reset-offset"]').show();
+			$(this).closest("td").find('[data-name="offset"]').hide();
+		}
+	});
+	
+	$(".ifeed-post-generator").on("click", '[data-action="reset-offset"]', function(){
+		ifeed_reset_offset();
+		ifeed_update_preview();
+	});
+	
 	$(".ifeed-post-generator").on("click", '[data-action="clear-query"]', function(){
 		query_presenter.html(" ");
 		ifeed_switchto_manual_query();
 	});
 	$(".ifeed-query-builder").on("change", 'input,select', function(){
+		var data_name = $(this).attr("data-name");
+		switch(data_name) {
+			case "offset": return;
+			case "tag":
+			case "tag__not_in":
+			case "cat":
+			case "time_offset":
+			case "orderby":
+			case "order":
+			case "post__not_in": {ifeed_reset_offset(); break;}
+			default: break;
+		}
 		ifeed_update_preview();
 	});
 	$(".ifeed-post-generator").on("click", '[data-action="reload-query"]', function(){
@@ -21,13 +61,20 @@ jQuery(document).ready(function($){
 		
 		if( ifeed_if_null(ajax_ifeed_load_posts_object) || ifeed_if_null(security) ) return;
 		query_presenter.addClass("loading");
+
+		var data_id_max = 0;
+		query_presenter.find('[data-name="exec-time"]').each(function(i){
+			if( $(this).attr("data-id") > data_id_max ) data_id_max = $(this).attr("data-id");
+		});
+		data_id_max++;
 		
 		jQuery.ajax({
 			type: 'POST',
 			url: ajax_ifeed_load_posts_object.ajaxurl,
 			data: {
 				'action': 'ifeed_load_posts',
-				'security': security
+				'security': security,
+				'data_id': data_id_max
 			},
 			success: function (data) {
 				query_presenter.append(data);
@@ -41,15 +88,19 @@ jQuery(document).ready(function($){
 		ifeed_switchto_manual_query();
 	});
 	$(".ifeed-post-generator").on("change", '[data-name="exec-time"]', function(){
-		if( Date.parse( $(this).val() ) < $.now() ) {
+		var input_id = $(this).attr("data-id");
+		var changed_value = $(this).val();
+		duplicated_data = false;
+		query_presenter.find('[data-name="exec-time"]').each(function(i){
+			if( $(this).attr("data-id") != input_id && $(this).val() == changed_value )
+				duplicated_data = true;
+		});
+		if( Date.parse( changed_value ) < $.now() || duplicated_data ) {
 			$(this).addClass("error");
 			return;
 		}
 		$(this).removeClass("error");
-		
-		var input_id = $(this).attr("data-id");
-		var changed_value = $(this).val();
-		
+			
 		query_presenter.addClass("loading");
 		ifeed_sort_by_date();
 		query_presenter.find('[data-id="'+input_id+'"]').val(changed_value);
@@ -62,13 +113,16 @@ jQuery(document).ready(function($){
 		var query = {};
 		var security = jQuery('#security').val();
 		var td_id_wrapper = $(this).closest("td");
+		var tr_wrapper = td_id_wrapper.closest("tr");
+		var data_id = tr_wrapper.find('[data-name="exec-time"]').attr("data-id");
+		var old_exec_time = tr_wrapper.find('[data-name="exec-time"]').val();
 		query.post_type = "post";
 		query.post_status = "publish";
 		query.p = $(this).val();
 		query = JSON.stringify(query);
 		
 		if( ifeed_if_null(ajax_ifeed_load_posts_object) || ifeed_if_null(security) || ifeed_if_null(query) ) return;
-		td_id_wrapper.closest("tr").addClass("loading");
+		tr_wrapper.addClass("loading");
 		
 		jQuery.ajax({
 			type: 'POST',
@@ -76,33 +130,46 @@ jQuery(document).ready(function($){
 			data: {
 				'action': 'ifeed_load_posts',
 				'security': security,
-				'query': query
+				'query': query,
+				'data_id': data_id
 			},
 			success: function (data) {
 				if( data=="empty_security" ) {
 					alert("security error!");
 					return;
 				}
-				td_id_wrapper.closest("tr").removeClass("loading");
+				tr_wrapper.removeClass("loading");
 				if( data=="empty_post" ) {
 					td_id_wrapper.find("input").addClass("error");
 					return;
 				}
-				td_id_wrapper.closest("tr").html( data );
+				tr_wrapper.html( data );
+				tr_wrapper.find('[data-name="exec-time"]').val(old_exec_time);
 				ifeed_switchto_manual_query();
 			}
 		});	
 	});
 	
 	$(".ifeed-post-generator").on("change", '[name="ifeed-query-manual"]', function(){
-		if( ! $(this).prop('checked') )
+		if( $(this).prop('checked') ) 
+			ifeed_switchto_manual_query();
+		else
 			$(".ifeed-post-generator").find('[data-action="reload-query"]').click();
 	});
 });
 
+function ifeed_reset_offset() {
+	jQuery(".ifeed-post-generator").find('[data-name="offset"]').val("0");
+	jQuery(".ifeed-post-generator").find('[data-name="offset"]').trigger('change');
+}
+
 function ifeed_switchto_manual_query() {
 	jQuery('[name="ifeed-settings"]').find('[name="ifeed-manual-posts"]').val( ifeed_stringify_manual_posts() );
 	jQuery(".ifeed-post-generator").find('[name="ifeed-query-manual"]').prop('checked', true);
+}
+
+function ifeed_switchto_auto_query() {
+	jQuery(".ifeed-post-generator").find('[name="ifeed-query-manual"]').prop('checked', false);
 }
 
 function ifeed_stringify_manual_posts() {
@@ -143,6 +210,7 @@ function ifeed_update_preview() {
 	jQuery('[name="ifeed-settings"]').find('[name="ifeed-auto-query"]').val(JSON.stringify( jQuery.extend({hours_set:JSON.stringify(ifeed_hours_set())}, query) ));
 	query.posts_per_page = 10;
 	ifeed_load_posts( JSON.stringify(query) );
+	ifeed_switchto_auto_query();
 }
 
 function ifeed_hours_set() {
