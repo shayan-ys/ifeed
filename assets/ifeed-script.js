@@ -208,7 +208,8 @@ function ifeed_update_preview() {
 	query.post_type = "post";
 	query.post_status = "publish";
 	jQuery('[name="ifeed-settings"]').find('[name="ifeed-auto-query"]').val(JSON.stringify( jQuery.extend({hours_set:JSON.stringify(ifeed_hours_set())}, query) ));
-	query.posts_per_page = 10;
+	query.posts_per_page = parseInt(jQuery('.ifeed-post-viewer').find('[data-action="reload-query-size"]').val() ,10);
+	if( query.posts_per_page < 1 ) query.posts_per_page = 10;
 	ifeed_load_posts( JSON.stringify(query) );
 	ifeed_switchto_auto_query();
 }
@@ -246,6 +247,7 @@ function ifeed_if_null( variable ) {
 function ifeed_load_posts(query) {
 	var security = jQuery('#security').val();
 	if( ifeed_if_null(ajax_ifeed_load_posts_object) || ifeed_if_null(security) || ifeed_if_null(query) ) return;
+	var last_run_in_log = jQuery(".ifeed-post-generator").find(".ifeed-log-viewer tbody > tr:first").find(".execution-time-wrapper").text();
 	query_presenter.addClass("loading");
 	
 	jQuery.ajax({
@@ -255,7 +257,8 @@ function ifeed_load_posts(query) {
 			'action': 'ifeed_load_posts',
 			'security': security,
 			'query': query,
-			'hours_set': JSON.stringify(ifeed_hours_set())
+			'hours_set': JSON.stringify(ifeed_hours_set()),
+			'last_run_in_log': last_run_in_log
 		},
 		success: function (data) {
 			if( data=="empty_security" ) {

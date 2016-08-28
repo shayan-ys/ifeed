@@ -233,6 +233,13 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 							<br/><br/>
 							<button type="button" data-action="clear-query" class="button ifeed-button-danger"><?php _e("clear list"); ?></button>
 							<button type="button" data-action="reload-query" class="button-secondary"><?php _e("reload from auto"); ?></button>
+							&nbsp;<label for="reload-query-size" class="reload-query-size"><?php _e("Load Count"); ?>:</label><select data-action="reload-query-size" id="reload-query-size" class="reload-query-size">
+								<option value="5">5</option>
+								<option value="10" selected="selected" >10</option>
+								<option value="15">15</option>
+								<option value="25">25</option>
+								<option value="50">50</option>
+							</select>
 							<table>
 								<thead><tr>
 									<th><?php _e("post ID"); ?></th>

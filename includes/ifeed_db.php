@@ -131,7 +131,7 @@ function ifeed_get_value_db($key, $value) {
 	);
 	try {
 		$result = $wpdb->get_row( $query, ARRAY_A);
-		if($result==null || $result=="") throw new Exception("empty result");
+		// if($result==null || $result=="") throw new Exception("empty result");
 	} catch (Exception $e) {wp_die( __('iFeed-error: DB error for query "'.$query.'" exception="'.$e->getMessage().'" ') );}
 	return $result;
 }

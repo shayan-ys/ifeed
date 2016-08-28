@@ -13,6 +13,11 @@ if(function_exists('ifeed_ajax_post_loader')) {wp_die( __('iFeed-error: Duplicat
 			die();
 		}
 
+		$last_run_in_log = false;
+		if(isset($_POST['last_run_in_log']) && strlen($_POST['last_run_in_log'])>10) {
+			$last_run_in_log = $_POST['last_run_in_log'];
+		}
+		
 		$hours_set = false;
 		if(isset($_POST['hours_set']) && $_POST['hours_set']!="") {
 			$hours_set = json_decode(stripslashes($_POST['hours_set']), true);
@@ -20,9 +25,14 @@ if(function_exists('ifeed_ajax_post_loader')) {wp_die( __('iFeed-error: Duplicat
 				sort($hours_set);
 				$now = new DateTime(null, new DateTimeZone('Asia/Tehran'));
 				$curr_hour = (int)$now->format('H');
+				$curr_day_hour = $now->format('Y-m-d H');
+				$last_run_current_hour = false;
+				if(strpos($last_run_in_log, $curr_day_hour) !== false)
+					$last_run_current_hour = true;
 				$ifeed_execution_hour_index = false;
 				for( $i=0; $i<count($hours_set); $i++ ) {
-					if($curr_hour < $hours_set[$i]) {
+					if(( !$last_run_current_hour && $curr_hour == $hours_set[$i] ) ||
+					($curr_hour < $hours_set[$i])) {
 						$ifeed_execution_hour_index = $i;
 						break;
 					}

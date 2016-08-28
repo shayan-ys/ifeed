@@ -16,6 +16,7 @@ echo '<?xml version="1.0" encoding="'.get_option('blog_charset').'"?'.'>';
 <channel>
 		<?php
 		$ifeed_posts = false;
+		$ifeed_slug = null;
 		if(isset($_GET['title']) && strlen($_GET['title'])>1) {
 			$ifeed_slug = esc_sql($_GET['title']);
 			if(function_exists('ifeed_get_value_db')){
@@ -35,7 +36,7 @@ echo '<?xml version="1.0" encoding="'.get_option('blog_charset').'"?'.'>';
 				}
 			}
 		}
-		if($ifeed_posts===false) {
+		if($ifeed_slug===false) {
 			// default query
 			global $wp_query;
 			$ifeed_posts = $wp_query;
@@ -51,21 +52,24 @@ echo '<?xml version="1.0" encoding="'.get_option('blog_charset').'"?'.'>';
         <sy:updateFrequency><?php echo apply_filters( 'rss_update_frequency', '1' ); ?></sy:updateFrequency>
         <?php do_action('rss2_head'); ?>
         <?php
-		while($ifeed_posts->have_posts()): $ifeed_posts->the_post();
+		if($ifeed_posts!==false) {
+			while($ifeed_posts->have_posts()): $ifeed_posts->the_post();
+			?>
+					<item>
+							<title><?php the_title_rss(); ?></title>
+							<link><?php the_permalink_rss();
+									echo $utm;
+							?></link>
+							<pubDate><?php echo mysql2date('D, d M Y H:i:s +0000', get_post_time('Y-m-d H:i:s', true), false); ?></pubDate>
+							<dc:creator><?php the_author(); ?></dc:creator>
+							<guid isPermaLink="false"><?php the_guid(); ?></guid>
+							<description><![CDATA[<?php the_excerpt_rss() ?>]]></description>
+							<content:encoded><![CDATA[<?php the_excerpt_rss() ?>]]></content:encoded>
+							<?php rss_enclosure(); ?>
+							<?php do_action('rss2_item'); ?>
+					</item>
+			<?php endwhile;
+		}
 		?>
-                <item>
-                        <title><?php the_title_rss(); ?></title>
-                        <link><?php the_permalink_rss();
-								echo $utm;
-						?></link>
-                        <pubDate><?php echo mysql2date('D, d M Y H:i:s +0000', get_post_time('Y-m-d H:i:s', true), false); ?></pubDate>
-                        <dc:creator><?php the_author(); ?></dc:creator>
-                        <guid isPermaLink="false"><?php the_guid(); ?></guid>
-                        <description><![CDATA[<?php the_excerpt_rss() ?>]]></description>
-                        <content:encoded><![CDATA[<?php the_excerpt_rss() ?>]]></content:encoded>
-                        <?php rss_enclosure(); ?>
-                        <?php do_action('rss2_item'); ?>
-                </item>
-		<?php endwhile; ?>
 </channel>
 </rss>
