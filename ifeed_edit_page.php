@@ -99,8 +99,12 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 						<tr valign="top">
 							<th scope="row"><?php _e("iFeed Slug:"); ?></th>
 							<td><fieldset><p> 
-								<input type="text" name="ifeed-slug" class="<?php echo (isset($input_errors['ifeed-slug']))? 'error '.$input_errors['ifeed-slug'] : ''; ?>" <?php echo ($ifeed_ID=="")? "" : 'readonly="readonly"' ?> size="20" placeholder="Unique name for iFeed" value="<?php echo $vals['ifeed-slug']; ?>"/>
+								<input type="text" name="ifeed-slug" class="<?php echo (isset($input_errors['ifeed-slug']))? 'error '.$input_errors['ifeed-slug'] : ''; ?>" <?php echo ($ifeed_ID=="")? "" : 'readonly="readonly"'; ?> size="20" placeholder="Unique name for iFeed" value="<?php echo $vals['ifeed-slug']; ?>"/>
 								&nbsp;<em><?php _e("Unique name for ifeed, also will be used for calling ifeed by URL"); ?></em>
+								<?php if($ifeed_ID!="") { $ifeed_url = get_bloginfo('rss2_url')."ifeed?title=".$vals['ifeed-slug']; ?>
+								<br />
+								<a href="<?php echo $ifeed_url ?>"><?php echo $ifeed_url ?></a>
+								<?php } ?>
 							</fieldset></td></p>
 						</tr>
 						<tr valign="top">
@@ -123,6 +127,7 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 					<thead><tr>
 						<th><?php _e("Automatic Query"); ?></th>
 						<th><?php _e("Preview / Manual"); ?></th>
+						<th class="ifeed-log-viewer"><?php _e("iFeed Log"); ?></th>
 					</tr></thead>
 					<tbody>
 					<tr><td class="left ifeed-query-builder">
@@ -214,14 +219,14 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 									<td><fieldset><p>
 										<select class="ifeed-query-builder" data-name="post__not_in">
 											<option value="" <?php echo (!isset($vals['ifeed-auto-query']['post__not_in']))? 'selected="selected"' : ''; ?>><?php _e("ignore"); ?></option>
-											<option value="<?php echo json_encode(get_option('sticky_posts')); ?>" <?php echo ($vals['ifeed-auto-query']['post__not_in']=="get_option('sticky_posts')")? 'selected="selected"' : ''; ?> ><?php _e("Sticky Posts"); ?></option>
+											<option value="sticky" <?php echo ($vals['ifeed-auto-query']['post__not_in']=="get_option('sticky_posts')")? 'selected="selected"' : ''; ?> ><?php _e("Sticky Posts"); ?></option>
 										</select>
 										<br /><em><b><?php _e("Caution"); ?></b>:&nbsp;<?php _e("changing this value will reset the offset."); ?></em>
 									</fieldset></td></p>
 								</tr>
 							</tbody>
 						</table>
-					</td><td class="right ifeed-post-viewer">
+					</td><td class="center ifeed-post-viewer">
 						<div class="ifeed-preview">
 							<h2><label><input type="checkbox" name="ifeed-query-manual" <?php echo (isset($vals['ifeed-query-manual'])&&$vals['ifeed-query-manual']!==null)? 'checked="checked"' : ""; ?>><span><?php _e("Manual select posts"); ?></span></label><em>&nbsp; (will inhibit automatic query)</em></h2>
 							<em class='caution'><b><?php _e("Note"); ?>:</b>&nbsp;<?php _e("Every change on box below (change in post-id or clearing the list) will tick the \"Manual select posts\"."); ?></em>
@@ -259,6 +264,41 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 								</tbody>
 							</table>
 							<button type="button" data-action="add-post-query" class="button-primary"><?php _e("add post"); ?></button>
+						</div>
+					</td>
+					<td class="right ifeed-log-viewer">
+						<div class="ifeed-preview">
+							<em class='caution'><b><?php _e("Note"); ?>:</b>&nbsp;<?php _e("First element of below table is showing the post that is live on rss-ifeed right now, others shows previous posts were in ifeed."); ?></em>
+							<table>
+								<thead><tr>
+									<th><?php _e("post ID"); ?></th>
+									<th><?php _e("Title"); ?></th>
+									<th><?php _e("Created Date"); ?></th>
+									<th><?php _e("Image"); ?></th>
+									<th><?php _e("Executed Time"); ?></th>
+								</tr></thead>
+								<tbody>
+								<?php
+								if(isset($vals['log_posts']))
+									$vals['log_posts'] = json_decode($vals['log_posts'], true);
+								if( is_array($vals['log_posts']) && count($vals['log_posts'])>0 ) {
+									foreach( array_reverse($vals['log_posts']) as $index=>$log_post ) {
+										$post = null;
+										try{
+											$post = new WP_Query(array('p'=> $log_post['post_id'] ));
+										} catch(Exception $e) { echo "Exception:". $e->getMessage();}
+										if ( strlen(serialize($post))>0 &&  $post->have_posts() ) :
+											while ( $post->have_posts() ) : $post->the_post();
+
+												$execution_string = (isset($log_post['added_time']))? $log_post['added_time'] : "Unknown";
+												ifeed_print_post_row(get_the_ID(), get_the_title(), get_the_permalink(), gmdate("Y-m-d", get_the_time('U')), get_the_post_thumbnail(null,'thumbnail'), $index, $execution_string, (!isset($query['p'])), false);
+											endwhile;
+										endif;
+									}
+								}
+								?>
+								</tbody>
+							</table>
 						</div>
 					</td></tr>
 					</tbody>

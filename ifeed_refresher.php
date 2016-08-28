@@ -16,8 +16,6 @@ if(function_exists('ifeed_refresher')) {wp_die( __('iFeed-error: Duplicate funct
 					$now = new DateTime(null, new DateTimeZone('Asia/Tehran'));
 					$curr_day_hour = $now->format('Y-m-d H:00');
 					echo $curr_day_hour;
-					echo "<br />agent: ";
-					var_dump($ifeed['agent']);
 					if( isset($manual_post_next['exec_time']) && $curr_day_hour == $manual_post_next['exec_time'] ) {
 						// now it's the time!
 						echo "<br />now its the time!";
@@ -25,7 +23,7 @@ if(function_exists('ifeed_refresher')) {wp_die( __('iFeed-error: Duplicate funct
 						// pop from beginning of online_posts
 						array_shift($online_posts);						
 						// add at end of online_posts
-						array_push($online_posts, $manual_post_next['post_id']);
+						array_push($online_posts, intval($manual_post_next['post_id']));
 						// log this addition to ifeed
 						array_push($log_posts, array(
 							'post_id' => $manual_post_next['post_id'],
@@ -55,18 +53,15 @@ if(function_exists('ifeed_refresher')) {wp_die( __('iFeed-error: Duplicate funct
 					}
 				} else {
 					// auto query
-					echo "<br />auto: ";
 					$query = json_decode($ifeed['query'], true);
 					$hours_set = json_decode($query['hours_set']);
 					unset($query['hours_set']);
-					var_dump($hours_set);
 					$now = new DateTime(null, new DateTimeZone('Asia/Tehran'));
 					$curr_hour = (int)$now->format('H');
 					$curr_day_hour = $now->format('Y-m-d H:00');
 					
 					$log_posts = (isset($ifeed['log_posts']) && $ifeed['log_posts']!=null)? json_decode($ifeed['log_posts'], true) : array();
-					$last_log_post = reset($log_posts);
-					echo "<br />Current Hour: ". $curr_hour;
+					$last_log_post = end($log_posts);
 					// var_dump($query);
 					if( in_array($curr_hour, $hours_set) &&
 						(!isset($last_log_post['promissed_exec_time']) || $last_log_post['promissed_exec_time'] != $curr_day_hour) ) {
@@ -114,7 +109,7 @@ if(function_exists('ifeed_refresher')) {wp_die( __('iFeed-error: Duplicate funct
 							// pop from beginning of online_posts
 							array_shift($online_posts);						
 							// add at end of online_posts
-							array_push($online_posts, $next_post_id);
+							array_push($online_posts, intval($next_post_id));
 							// log this addition to ifeed
 							array_push($log_posts, array(
 								'post_id' => $next_post_id,

@@ -1,6 +1,6 @@
 <?php
 if ( !class_exists( 'WP_List_Table_ifeed' ) ) {
-	include_once( plugin_dir_path( __FILE__ ) . 'class-wp-list-table-ifeed.php' );
+	include_once( plugin_dir_path( __FILE__ ) . '/includes/class-wp-list-table-ifeed.php' );
 	if(!class_exists( 'WP_List_Table_ifeed' )) {wp_die( __('iFeed-error: class not found: "WP_List_Table_ifeed"') );}
 }
 
@@ -125,9 +125,11 @@ if ( class_exists( 'Ifeed_List' ) ) {wp_die( __('iFeed-error: duplicate class fo
 				return $this->column_name($item,$column_name);
 			case 'utm':
 			case 'description':
-			case 'manual':
-			case 'active':
 				return $item[ $column_name ];
+			case 'manual':
+				return ($item[ $column_name ]==1)? "Manual" : "Auto";
+			case 'active':
+				return ($item[ $column_name ]==1)? "Active" : "Deactive";
 			default:
 				return print_r( $item, true ); //Show the whole array for troubleshooting purposes
 			}

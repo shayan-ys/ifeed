@@ -1,4 +1,4 @@
-.ifeed-post-generator > tbody > tr > .left, .ifeed-post-generator > tbody > tr > .right {vertical-align:top;}
+.ifeed-post-generator > tbody > tr > .left, .ifeed-post-generator > tbody > tr > .center, .ifeed-post-generator > tbody > tr > .right {vertical-align:top;}
 .ifeed-post-generator .ifeed-preview > h2 em {font-size: 11px!important; font-weight: normal!important;}
 .ifeed-post-generator .ifeed-preview > em.caution {font-size: 14px!important;}
 .ifeed-post-generator .ifeed-preview > button {margin:5px 0;}
@@ -15,6 +15,11 @@
 .ifeed-post-generator .ifeed-preview > table > tbody > tr > td.img-wrapper {width:60px; height:60px;}
 .ifeed-post-generator .ifeed-preview > table > tbody > tr > td.img-wrapper > img {width:60px; height:60px;}
 .ifeed-post-generator .ifeed-preview > table > tbody > tr > td.execution-time-wrapper > input {width: 130px;}
+/* .ifeed-post-generator .ifeed-log-viewer .ifeed-preview {background: transparent url("arrow_right.png") no-repeat scroll 0 65px / 75px auto;margin-top: 119px;padding-left: 90px;} */
+.ifeed-post-generator .ifeed-log-viewer .ifeed-preview {position:relative;}
+.ifeed-post-generator .ifeed-log-viewer .ifeed-preview em.caution {left: 0;position: absolute;top: -70px;}
+.ifeed-post-generator .ifeed-log-viewer .ifeed-preview table {margin-top: 119px;}
+.ifeed-post-generator th.ifeed-log-viewer {padding-left:90px;}
 
 /** GENERAL **/
 [name="ifeed-settings"] input.error {border-color: #d9534f!important;}

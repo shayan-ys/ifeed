@@ -57,12 +57,16 @@ if(function_exists('ifeed_ajax_post_loader')) {wp_die( __('iFeed-error: Duplicat
 			// }
 		}
 		
-		if(isset($query['post__not_in']) && $query['post__not_in'] !== false) {
-			$query['post__not_in'] = json_decode($query['post__not_in'], true);
+		if(isset($query['post__not_in']) && $query['post__not_in']=="sticky" ) {
+			$query['post__not_in'] = get_option( 'sticky_posts' );
+			$query['ignore_sticky_posts'] = 1;
 		}
+		
+		$query['caller_get_posts'] = 1;
 		
 		$posts = null;
 		try{
+			// wp_reset_query();
 			$posts = new WP_Query($query);
 			// var_dump($query);
 			// var_dump($posts);
@@ -71,7 +75,7 @@ if(function_exists('ifeed_ajax_post_loader')) {wp_die( __('iFeed-error: Duplicat
 		if ( strlen(serialize($posts))>0 &&  $posts->have_posts() ) :
 			while ( $posts->have_posts() ) : $posts->the_post();
 
-				if( in_array(get_the_ID(), $query['post__not_in'] ) ) continue;
+				// if( in_array(get_the_ID(), $query['post__not_in'] ) ) continue;
 				$execution_string = "Unknown";
 				if($hours_set!==false) {
 					$execution_string = $ifeed_execution_date->format('Y-m-d') .' '. $hours_set[$ifeed_execution_hour_index].':00';
@@ -86,6 +90,7 @@ if(function_exists('ifeed_ajax_post_loader')) {wp_die( __('iFeed-error: Duplicat
 				ifeed_print_post_row(get_the_ID(), get_the_title(), get_the_permalink(), gmdate("Y-m-d", get_the_time('U')), get_the_post_thumbnail(null,'thumbnail'), $index, $execution_string, (!isset($query['p'])));
 				$index++;
 			endwhile;
+			wp_reset_query();
 		else :
 			die("empty_post");
 		endif;
@@ -95,16 +100,26 @@ if(function_exists('ifeed_ajax_post_loader')) {wp_die( __('iFeed-error: Duplicat
 
 
 if(function_exists('ifeed_print_post_row')) {wp_die( __('iFeed-error: Duplicate function name, remove function: "ifeed_print_post_row"') );} else {
-	function ifeed_print_post_row($id, $title, $permalink, $created_time, $thumbnail, $index, $execution_string, $with_tr=true) {
+	function ifeed_print_post_row($id, $title, $permalink, $created_time, $thumbnail, $index, $execution_string, $with_tr=true, $actions=true) {
 		if($with_tr) : ?>
 		<tr>
 			<?php endif; ?>
+			<?php if($actions) { ?>
 			<td class="post-id-wrapper"><input type="text" value="<?php echo $id ?>" /></td>
+			<?php } else { ?>
+			<td class="post-id-wrapper"><?php echo $id ?></td>
+			<?php } ?>
 			<td class='title-wrapper'><a title="<?php echo $title ?>" href="<?php echo $permalink ?>"><?php echo $title ?></a></td>
 			<td><?php echo $created_time; ?></td>
 			<td class='img-wrapper'><?php echo $thumbnail ?></td>
+			<?php if($actions) { ?>
 			<td class='execution-time-wrapper'><input type="text" data-name="exec-time" data-id="<?php echo $index; ?>" value="<?php echo $execution_string; ?>" /></td>
+			<?php } else { ?>
+			<td class='execution-time-wrapper'><?php echo $execution_string; ?></td>
+			<?php } ?>
+			<?php if($actions) { ?>
 			<td class='remove'><button type="button" data-action="remove-post-query" class="button-secondary"><?php _e("X"); ?></button></td>
+			<?php } ?>
 			<?php if( $with_tr ) : ?>
 		</tr>
 		<?php
