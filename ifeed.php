@@ -32,7 +32,7 @@ add_action( 'plugins_loaded', function () {
 });
 
 /** handle save retrieve or create tables in Database **/
-include_once( plugin_dir_path( __FILE__ ) . 'ifeed_db.php' );
+include_once( plugin_dir_path( __FILE__ ) . '/includes/ifeed_db.php' );
 if(!function_exists('ifeed_save_options_db')) {wp_die( __('iFeed-error: function not found, include function: "ifeed_save_options_db"') );}
 
 /** html and php codes needed for edit/create page of ifeeds **/
@@ -48,7 +48,17 @@ if( !function_exists('ifeed_ajax_post_loader') ) {wp_die( __('iFeed-error: funct
 /** RSS iFeed **/
 add_action('init', 'ifeed_RSS');
 function ifeed_RSS(){ add_feed('ifeed', 'ifeed_RSS_func'); }
-function ifeed_RSS_func(){ get_template_part('rss', 'ifeed'); }
+function ifeed_RSS_func(){
+	if ( $overridden_template = locate_template('rss-ifeed.php') ) {
+		// locate_template() returns path to file
+		// if either the child theme or the parent theme have overridden the template
+		load_template( $overridden_template );
+	} else {
+		// If neither the child nor parent theme have overridden the template,
+		// we load the template from the 'includes' sub-directory of the directory this file is in
+		load_template( dirname( __FILE__ ) . '/includes/rss-ifeed.php' );
+	}
+}
 /** RSS iFeed END **/
 
 if( !function_exists('ifeed_detect_page_refresh') ) {wp_die( __('iFeed-error: function not found, include function: "ifeed_detect_page_refresh"') );} else {

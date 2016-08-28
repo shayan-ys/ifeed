@@ -123,9 +123,15 @@ function ifeed_get_value_db($key, $value) {
 		}
 	}
 	$result = false;
-	$query = "SELECT * FROM ".$table_name." WHERE `".$key."` = \"".$value."\"";
+	$table_key = "id";
+	if($key==="slug") $table_key = "slug";
+	$query = $wpdb->prepare( 
+			"SELECT * FROM ".$table_name." WHERE `".$table_key."` = \"%s\"", 
+			$value 
+	);
 	try {
 		$result = $wpdb->get_row( $query, ARRAY_A);
+		if($result==null || $result=="") throw new Exception("empty result");
 	} catch (Exception $e) {wp_die( __('iFeed-error: DB error for query "'.$query.'" exception="'.$e->getMessage().'" ') );}
 	return $result;
 }
