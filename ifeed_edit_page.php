@@ -276,6 +276,7 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 									<th><?php _e("Created Date"); ?></th>
 									<th><?php _e("Image"); ?></th>
 									<th><?php _e("Executed Time"); ?></th>
+									<th><?php _e("View Counts (daily)"); ?></th>
 								</tr></thead>
 								<tbody>
 								<?php
@@ -289,9 +290,17 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 										} catch(Exception $e) { echo "Exception:". $e->getMessage();}
 										if ( strlen(serialize($post))>0 &&  $post->have_posts() ) :
 											while ( $post->have_posts() ) : $post->the_post();
-
+												?>
+												<tr>
+												<?php
 												$execution_string = (isset($log_post['added_time']))? $log_post['added_time'] : "Unknown";
-												ifeed_print_post_row(get_the_ID(), get_the_title(), get_the_permalink(), gmdate("Y-m-d", get_the_time('U')), get_the_post_thumbnail(null,'thumbnail'), $index, $execution_string, (!isset($query['p'])), false);
+												ifeed_print_post_row(get_the_ID(), get_the_title(), get_the_permalink(), gmdate("Y-m-d", get_the_time('U')), get_the_post_thumbnail(null,'thumbnail'), $index, $execution_string, false, false);
+												?>
+												<td>
+												<?php echo get_post_meta( $log_post['post_id'], '_count-views_day-'.date('Ymd'), true ); ?>
+												</td>
+												</tr>
+												<?php
 											endwhile;
 										endif;
 									}

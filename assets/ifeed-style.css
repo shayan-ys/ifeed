@@ -1,4 +1,5 @@
 .ifeed-post-generator > tbody > tr > .left, .ifeed-post-generator > tbody > tr > .center, .ifeed-post-generator > tbody > tr > .right {vertical-align:top;}
+.ifeed-post-generator .ifeed-query-builder input[data-name="offset"] {width:60px;}
 .ifeed-post-generator .ifeed-preview > h2 em {font-size: 11px!important; font-weight: normal!important;}
 .ifeed-post-generator .ifeed-preview > em.caution {font-size: 14px!important;}
 .ifeed-post-generator .ifeed-preview > button {margin:5px 0;}
