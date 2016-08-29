@@ -126,8 +126,7 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 				<table class="form-table ifeed-post-generator">
 					<thead><tr>
 						<th><?php _e("Automatic Query"); ?></th>
-						<th><?php _e("Preview / Manual"); ?></th>
-						<th class="ifeed-log-viewer"><?php _e("iFeed Log"); ?></th>
+						<th><?php _e("Preview"); ?></th>
 					</tr></thead>
 					<tbody>
 					<tr><td class="left ifeed-query-builder">
@@ -226,8 +225,53 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 								</tr>
 							</tbody>
 						</table>
-					</td><td class="center ifeed-post-viewer">
-						<div class="ifeed-preview">
+					</td><td class="right">
+						<div class="ifeed-preview ifeed-log-viewer">
+							<em class='caution'><b><?php _e("Note"); ?>:</b>&nbsp;<?php _e("Last element of below table is showing the post that is live on rss-ifeed right now, others shows previous posts were in ifeed."); ?></em>
+							<table>
+								<thead><tr>
+									<th><?php _e("post ID"); ?></th>
+									<th><?php _e("Title"); ?></th>
+									<th><?php _e("Created Date"); ?></th>
+									<th><?php _e("Image"); ?></th>
+									<th><?php _e("Executed Time"); ?></th>
+									<th><?php _e("View Counts (daily)"); ?></th>
+								</tr></thead>
+								<tbody>
+								<?php
+								if(isset($vals['log_posts']))
+									$vals['log_posts'] = json_decode($vals['log_posts'], true);
+								if( is_array($vals['log_posts']) && count($vals['log_posts'])>0 ) {
+									array_slice($vals['log_posts'], 3);
+									foreach( $vals['log_posts'] as $index=>$log_post ) {
+										$post = null;
+										try{
+											$post = new WP_Query(array('p'=> $log_post['post_id'] ));
+										} catch(Exception $e) { echo "Exception:". $e->getMessage();}
+										if ( strlen(serialize($post))>0 &&  $post->have_posts() ) :
+											while ( $post->have_posts() ) : $post->the_post();
+												?>
+												<tr>
+												<?php
+												$execution_string = (isset($log_post['added_time']))? $log_post['added_time'] : "Unknown";
+												ifeed_print_post_row(get_the_ID(), get_the_title(), get_the_permalink(), gmdate("Y-m-d", get_the_time('U')), get_the_post_thumbnail(null,'thumbnail'), $index, $execution_string, false, false);
+												?>
+												<td>
+												<?php echo get_post_meta( $log_post['post_id'], '_count-views_day-'.date('Ymd'), true ); ?>
+												</td>
+												</tr>
+												<?php
+											endwhile;
+										endif;
+									}
+								}
+								?>
+								</tbody>
+							</table>
+						</div>						
+						<div class="ifeed-preview ifeed-post-viewer">
+							<br /><br /><br />
+							<h2><?php _e("Query Result Preview / Manual"); ?></h2>
 							<h2><label><input type="checkbox" name="ifeed-query-manual" <?php echo (isset($vals['ifeed-query-manual'])&&$vals['ifeed-query-manual']!==null)? 'checked="checked"' : ""; ?>><span><?php _e("Manual select posts"); ?></span></label><em>&nbsp; (will inhibit automatic query)</em></h2>
 							<em class='caution'><b><?php _e("Note"); ?>:</b>&nbsp;<?php _e("Every change on box below (change in post-id or clearing the list) will tick the \"Manual select posts\"."); ?></em>
 							<br/><br/>
@@ -271,50 +315,6 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 								</tbody>
 							</table>
 							<button type="button" data-action="add-post-query" class="button-primary"><?php _e("add post"); ?></button>
-						</div>
-					</td>
-					<td class="right ifeed-log-viewer">
-						<div class="ifeed-preview">
-							<em class='caution'><b><?php _e("Note"); ?>:</b>&nbsp;<?php _e("First element of below table is showing the post that is live on rss-ifeed right now, others shows previous posts were in ifeed."); ?></em>
-							<table>
-								<thead><tr>
-									<th><?php _e("post ID"); ?></th>
-									<th><?php _e("Title"); ?></th>
-									<th><?php _e("Created Date"); ?></th>
-									<th><?php _e("Image"); ?></th>
-									<th><?php _e("Executed Time"); ?></th>
-									<th><?php _e("View Counts (daily)"); ?></th>
-								</tr></thead>
-								<tbody>
-								<?php
-								if(isset($vals['log_posts']))
-									$vals['log_posts'] = json_decode($vals['log_posts'], true);
-								if( is_array($vals['log_posts']) && count($vals['log_posts'])>0 ) {
-									foreach( array_reverse($vals['log_posts']) as $index=>$log_post ) {
-										$post = null;
-										try{
-											$post = new WP_Query(array('p'=> $log_post['post_id'] ));
-										} catch(Exception $e) { echo "Exception:". $e->getMessage();}
-										if ( strlen(serialize($post))>0 &&  $post->have_posts() ) :
-											while ( $post->have_posts() ) : $post->the_post();
-												?>
-												<tr>
-												<?php
-												$execution_string = (isset($log_post['added_time']))? $log_post['added_time'] : "Unknown";
-												ifeed_print_post_row(get_the_ID(), get_the_title(), get_the_permalink(), gmdate("Y-m-d", get_the_time('U')), get_the_post_thumbnail(null,'thumbnail'), $index, $execution_string, false, false);
-												?>
-												<td>
-												<?php echo get_post_meta( $log_post['post_id'], '_count-views_day-'.date('Ymd'), true ); ?>
-												</td>
-												</tr>
-												<?php
-											endwhile;
-										endif;
-									}
-								}
-								?>
-								</tbody>
-							</table>
 						</div>
 					</td></tr>
 					</tbody>

@@ -1,4 +1,4 @@
-var query_presenter = jQuery(".ifeed-post-viewer .ifeed-preview tbody");
+var query_presenter = jQuery(".ifeed-post-viewer tbody");
 
 jQuery(document).ready(function($){
 	

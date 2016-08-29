@@ -149,7 +149,7 @@ function ifeed_get_options_db($ifeed_id, $output=ARRAY_A) {
 	$query_by_id = "SELECT * FROM ".$table_name." WHERE id = ".$ifeed_id;
 	$query_all = "SELECT * FROM ".$table_name;
 	try {
-		if($ifeed_id!=null && $ifeed_id!="" && intval($ifeed_id)>=0 ) {
+		if($ifeed_id!=null && $ifeed_id!="" && intval($ifeed_id)>=0 && !is_array($ifeed_id) ) {
 			$result = $wpdb->get_row( $query_by_id, ARRAY_A);
 			/** parse data **/
 			$result['ifeed-slug'] = isset($result['slug'])? $result['slug'] : "";
@@ -161,9 +161,13 @@ function ifeed_get_options_db($ifeed_id, $output=ARRAY_A) {
 				$result['ifeed-manual-posts'] = isset($result['query'])? $result['query'] : "";
 			} else {
 				$result['ifeed-auto-query'] = isset($result['query'])? $result['query'] : "";
-			}			
+			}
+		} elseif(is_array($ifeed_id)) {
+			$ifeed_custom_q = $ifeed_id;
+			$result = $wpdb->get_results($query_all." WHERE `".current(array_keys($ifeed_custom_q))."` = '".current($ifeed_custom_q)."'"
+				, $output);
 		} else {
-			$result = $wpdb->get_results( $query_all, $output);
+			$result = $wpdb->get_results($query_all, $output);
 		}
 		
 	} catch (Exception $e) {wp_die( __('iFeed-error: DB error for query "'.$query.'" exception="'.$e->getMessage().'" ') );}

@@ -2,14 +2,15 @@
 if(function_exists('ifeed_refresher')) {wp_die( __('iFeed-error: Duplicate function name, remove function: "ifeed_refresher"') );} else {
 	function ifeed_refresher() {
 		if( !function_exists('ifeed_get_options_db') ) {wp_die( __('iFeed-error: function not found, include function: "ifeed_get_options_db"') );} else {
-			$ifeeds = ifeed_get_options_db();
+			$ifeeds = ifeed_get_options_db(array('active'=>1));
 			echo "hello world";
 			echo "<pre style='direction:ltr!important; text-align:left!important;'>";
 			foreach($ifeeds as $key=>$ifeed) {
+				echo "active ifeed_id=".$ifeed['id']. "<br />";
 				if( intval($ifeed['manual'])==1 ) {
 					// is manual
 					$manual_posts = json_decode($ifeed['query'], true);
-					if(count($manual_posts)<1) return null;
+					if(count($manual_posts)<1) continue; return null;
 					$online_posts = (isset($ifeed['online_posts']) && $ifeed['online_posts']!=null)? json_decode($ifeed['online_posts'], true) : array();
 					$log_posts = (isset($ifeed['log_posts']) && $ifeed['log_posts']!=null)? json_decode($ifeed['log_posts'], true) : array();
 					$manual_post_next = reset($manual_posts);

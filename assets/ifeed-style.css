@@ -3,6 +3,8 @@
 .ifeed-post-generator .ifeed-preview > h2 em {font-size: 11px!important; font-weight: normal!important;}
 .ifeed-post-generator .ifeed-preview > em.caution {font-size: 14px!important;}
 .ifeed-post-generator .ifeed-preview > button {margin:5px 0;}
+.ifeed-post-generator .ifeed-preview > .reload-query-size {margin-top:6px;}
+.ifeed-post-generator .ifeed-preview > label.reload-query-size {padding-top:5px;}
 .ifeed-post-generator .ifeed-preview > table {border-collapse: collapse; }
 .ifeed-post-generator .ifeed-preview > table tr {height: 60px; background: #fefefe; border-bottom:1px solid #dedede;}
 .ifeed-post-generator .ifeed-preview > table > thead th {border-right: 1px solid #dedede; padding: 0 10px; vertical-align: middle; width: inherit;}
@@ -10,17 +12,17 @@
 .ifeed-post-generator .ifeed-preview > table > tbody {max-height:700px; overflow-y:scroll;}
 .ifeed-post-generator .ifeed-preview .loading {opacity:0.3;}
 .ifeed-post-generator .ifeed-preview .loading, .ifeed-post-generator .ifeed-preview .loading input, .ifeed-post-generator .ifeed-preview .loading a {cursor:wait!important;}
-.ifeed-post-generator .ifeed-preview > table > tbody > tr:first-child {border-left: 5px solid #008EC2;}
+.ifeed-post-generator .ifeed-preview.ifeed-post-viewer > table > tbody > tr:first-child {border-left: 5px solid #008EC2;}
+.ifeed-post-generator .ifeed-preview.ifeed-log-viewer  > table > tbody > tr:last-child  {border-left: 5px solid #008EC2;}
+.ifeed-post-generator .ifeed-preview.ifeed-log-viewer  > table > tbody > tr:nth-last-child(2) {opacity: 0.75;}
+.ifeed-post-generator .ifeed-preview.ifeed-log-viewer  > table > tbody > tr:nth-last-child(3) {opacity: 0.5;}
+.ifeed-post-generator .ifeed-preview.ifeed-log-viewer  > table {margin-top:15px;}
 .ifeed-post-generator .ifeed-preview > table > tbody > tr > td {padding-top:0; padding-bottom:0;}
 .ifeed-post-generator .ifeed-preview > table > tbody > tr > td.post-id-wrapper > input {width:45px; text-align:center;}
 .ifeed-post-generator .ifeed-preview > table > tbody > tr > td.img-wrapper {width:60px; height:60px;}
 .ifeed-post-generator .ifeed-preview > table > tbody > tr > td.img-wrapper > img {width:60px; height:60px;}
 .ifeed-post-generator .ifeed-preview > table > tbody > tr > td.execution-time-wrapper > input {width: 130px;}
 /* .ifeed-post-generator .ifeed-log-viewer .ifeed-preview {background: transparent url("arrow_right.png") no-repeat scroll 0 65px / 75px auto;margin-top: 119px;padding-left: 90px;} */
-.ifeed-post-generator .ifeed-log-viewer .ifeed-preview {position:relative;}
-.ifeed-post-generator .ifeed-log-viewer .ifeed-preview em.caution {left: 0;position: absolute;top: -70px;}
-.ifeed-post-generator .ifeed-log-viewer .ifeed-preview table {margin-top: 119px;}
-.ifeed-post-generator th.ifeed-log-viewer {padding-left:90px;}
 
 /** GENERAL **/
 [name="ifeed-settings"] input.error {border-color: #d9534f!important;}
