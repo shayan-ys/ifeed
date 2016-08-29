@@ -14,7 +14,7 @@ Iterating Feeds For WordPress
 - This plugin uses a table in your **database**, it will create it automatically and on plugin uninstallation, it will be deleted. (be careful about your data)
 - To make this plugin work fully, you should set a **cronjob** to call the refresher URL (illustrated in settings page) at least every hour.
 
-### Report probable issues on WordPress developers community or Github Repo
+##### Report probable issues on WordPress developers community or [Github Repo](https://github.com/shayan-ys/ifeed/issues)
 
 ## Copyright
-Developed by [Shayan Ys](http://www.shayanys.com) at [BE360](http://www.be360.ir) private company for [Chetor.com](http://www.chetor.com) project. All right reserve.
+Developed by [Shayan Ys](http://www.shayanys.com) at [BE360](http://www.be360.ir) private company for [Chetor.com](http://www.chetor.com) project. All right reserved.
