@@ -124,7 +124,7 @@ function ifeed_detect_page_refresh() {
     $queried_object = get_queried_object();
 	$message = '';
     if($queried_object->ID == get_option('ifeed_refresher_page_id')) { // ifeed-refresh
-		if( $_GET['key'] != get_option('ifeed_refresher_page_key') || current_user_can('manage_options') ) {
+		if( $_GET['key'] == get_option('ifeed_refresher_page_key') || current_user_can('manage_options') ) {
 			include_once( plugin_dir_path( __FILE__ ) . 'ifeed_refresher.php' );
 			if( !function_exists('ifeed_refresher') ) {wp_die( __('iFeed-error: function not found, include function: "ifeed_refresher"') );} else {
 				$message = ifeed_refresher();
