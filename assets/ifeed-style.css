@@ -14,8 +14,10 @@
 .ifeed-post-generator .ifeed-preview .loading, .ifeed-post-generator .ifeed-preview .loading input, .ifeed-post-generator .ifeed-preview .loading a {cursor:wait!important;}
 .ifeed-post-generator .ifeed-preview.ifeed-post-viewer > table > tbody > tr:first-child {border-left: 5px solid #008EC2;}
 .ifeed-post-generator .ifeed-preview.ifeed-log-viewer  > table > tbody > tr:last-child  {border-left: 5px solid #008EC2;}
-.ifeed-post-generator .ifeed-preview.ifeed-log-viewer  > table > tbody > tr:nth-last-child(2) {opacity: 0.75;}
-.ifeed-post-generator .ifeed-preview.ifeed-log-viewer  > table > tbody > tr:nth-last-child(3) {opacity: 0.5;}
+.ifeed-post-generator .ifeed-preview.ifeed-log-viewer  > table > tbody > tr:nth-last-child(2) {opacity: 0.85;}
+.ifeed-post-generator .ifeed-preview.ifeed-log-viewer  > table > tbody > tr:nth-last-child(3) {opacity: 0.7;}
+.ifeed-post-generator .ifeed-preview.ifeed-log-viewer  > table > tbody > tr:nth-last-child(4) {opacity: 0.55;}
+.ifeed-post-generator .ifeed-preview.ifeed-log-viewer  > table > tbody > tr:nth-last-child(5) {opacity: 0.4;}
 .ifeed-post-generator .ifeed-preview.ifeed-log-viewer  > table {margin-top:15px;}
 .ifeed-post-generator .ifeed-preview > table > tbody > tr > td {padding-top:0; padding-bottom:0;}
 .ifeed-post-generator .ifeed-preview > table > tbody > tr > td.post-id-wrapper > input {width:45px; text-align:center;}

@@ -235,14 +235,14 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 									<th><?php _e("Created Date"); ?></th>
 									<th><?php _e("Image"); ?></th>
 									<th><?php _e("Executed Time"); ?></th>
-									<th><?php _e("View Counts (daily)"); ?></th>
+									<th><?php _e("View Counts <br/>(daily)"); ?></th>
 								</tr></thead>
 								<tbody>
 								<?php
 								if(isset($vals['log_posts']))
 									$vals['log_posts'] = json_decode($vals['log_posts'], true);
 								if( is_array($vals['log_posts']) && count($vals['log_posts'])>0 ) {
-									array_slice($vals['log_posts'], 3);
+									array_slice($vals['log_posts'], 5);
 									foreach( $vals['log_posts'] as $index=>$log_post ) {
 										$post = null;
 										try{

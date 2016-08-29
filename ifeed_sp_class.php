@@ -65,9 +65,12 @@ if ( class_exists( 'SP_Ifeed' ) ) {wp_die( __('iFeed-error: duplicate class foun
 				iFeed Plugin
 				<a class="page-title-action" href="?page=ifeed-settings-edit">Add New</a>
 				<?php if($_GET['action']=="delete") {wp_redirect( "?page=ifeed-settings" ); ?><a class="page-title-action" href="?page=ifeed-settings">Back to iFeeds List</a><?php } ?>
+				<?php $refresher_url = esc_url( get_permalink(intval(get_option('ifeed_refresher_page_id'))) . "?key=". get_option('ifeed_refresher_page_key') ); ?>
 				</h2>
 
 				<div id="poststuff">
+					<b>Refresher URL: </b><a href="<?php echo $refresher_url; ?>"><?php echo $refresher_url ?></a>
+					<br/><b>Note: </b><em>You need to give this URL to your <b>cronjob</b> script, it should be call at least every hour.</em>
 					<div id="post-body" class="metabox-holder columns-2">
 						<div id="post-body-content">
 							<div class="meta-box-sortables ui-sortable">

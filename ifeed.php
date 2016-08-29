@@ -20,8 +20,58 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 */
-DEFINE( 'IFEED_FULLNAME', 'Iterating WP RSS Feed' );
-DEFINE( 'IFEED_VERSION', '1.1.0' );
+/** handle save retrieve or create tables in Database **/
+include_once( plugin_dir_path( __FILE__ ) . '/includes/ifeed_db.php' );
+if(!function_exists('ifeed_save_options_db')) {wp_die( __('iFeed-error: function not found, include function: "ifeed_save_options_db"') );}
+
+
+/** Activation function **/
+function ifeed_activate() {
+    // Activation code here...
+	global $user_ID;
+	$page['post_type']    = 'page';
+	$page['post_content'] = 'iFeed Refresher script';
+	$page['post_parent']  = 0;
+	$page['post_author']  = $user_ID;
+	$page['post_status']  = 'publish';
+	$page['post_title']   = 'ifeed-refresh';
+	if(get_page_by_title($page['post_title'])!=null) {
+		$page['post_title'] = 'ifeed-refresher';
+		$suffix=1;
+		$page_title = $page['post_title'];
+		while(get_page_by_title($page['post_title'])!=null) {
+			$page['post_title'] = $page_title.$suffix;
+			$suffix++;
+		}
+	}
+	
+	$page = apply_filters('yourplugin_add_new_page', $page, 'teams');
+	$pageid = wp_insert_post ($page);
+	if ($pageid != 0) { update_option('ifeed_refresher_page_id', $pageid); update_option('ifeed_refresher_page_key', wp_generate_password(12,false)); }
+	else {}
+}
+register_activation_hook( __FILE__, 'ifeed_activate');
+/** Activation function END **/
+/** Deactivation function **/
+function ifeed_deactivate() {
+    $refresh_pageid = get_option('ifeed_refresher_page_id');
+	if( intval($refresh_pageid)>0 )
+		wp_delete_post($refresh_pageid,true);
+	delete_option('ifeed_refresher_page_id');
+	delete_option('ifeed_refresher_page_key');
+}
+register_deactivation_hook( __FILE__, 'ifeed_deactivate');
+/** Deactivation function END **/
+/** Unistallation function **/
+register_uninstall_hook( __FILE__, 'ifeed_uninstall' );
+function ifeed_uninstall() {
+    $refresh_pageid = get_option('ifeed_refresher_page_id');
+	if( intval($refresh_pageid)>0 )
+		wp_delete_post($refresh_pageid,true);
+	if( function_exists('ifeed_delete_table_db') )
+		ifeed_delete_table_db();
+}
+/** Unistallation function END **/
 
 /** WP-admin **/
 include_once( plugin_dir_path( __FILE__ ) . 'ifeed_list_class.php' );
@@ -30,10 +80,6 @@ include_once( plugin_dir_path( __FILE__ ) . 'ifeed_sp_class.php' );
 add_action( 'plugins_loaded', function () {
 	SP_Ifeed::get_instance();
 });
-
-/** handle save retrieve or create tables in Database **/
-include_once( plugin_dir_path( __FILE__ ) . '/includes/ifeed_db.php' );
-if(!function_exists('ifeed_save_options_db')) {wp_die( __('iFeed-error: function not found, include function: "ifeed_save_options_db"') );}
 
 /** html and php codes needed for edit/create page of ifeeds **/
 include_once( plugin_dir_path( __FILE__ ) . 'ifeed_edit_page.php' );
@@ -44,6 +90,16 @@ if( !function_exists('ifeed_ajax_post_loader') ) {wp_die( __('iFeed-error: funct
 	add_action( 'wp_ajax_ifeed_load_posts', 'ifeed_ajax_post_loader' );
 }
 /** WP-admin END **/
+
+/** Plugins page **/
+add_filter( 'plugin_action_links_' . plugin_basename(__FILE__), 'ifeed_add_action_links' );
+function ifeed_add_action_links ( $links ) {
+	$mylinks = array(
+		'<a href="' . admin_url( 'options-general.php?page=ifeed-settings' ) . '">Settings</a>',
+	);
+	return array_merge( $mylinks, $links );
+}
+/** Plugins page END **/
 
 /** RSS iFeed **/
 add_action('init', 'ifeed_RSS');
@@ -67,8 +123,8 @@ if( !function_exists('ifeed_detect_page_refresh') ) {wp_die( __('iFeed-error: fu
 function ifeed_detect_page_refresh() {
     $queried_object = get_queried_object();
 	$message = '';
-    if($queried_object->post_name == "ifeed-refresh") { // ifeed-refresh
-		if( $_GET['key'] != '123' || current_user_can('manage_options') ) {
+    if($queried_object->ID == get_option('ifeed_refresher_page_id')) { // ifeed-refresh
+		if( $_GET['key'] != get_option('ifeed_refresher_page_key') || current_user_can('manage_options') ) {
 			include_once( plugin_dir_path( __FILE__ ) . 'ifeed_refresher.php' );
 			if( !function_exists('ifeed_refresher') ) {wp_die( __('iFeed-error: function not found, include function: "ifeed_refresher"') );} else {
 				$message = ifeed_refresher();

@@ -21,6 +21,12 @@ function ifeed_create_table_db($table_name) {
 	dbDelta($sql);
 }
 
+function ifeed_delete_table_db() {
+	global $wpdb;
+	$table_name = $wpdb->prefix.'ifeed';
+	$sql = "DROP TABLE IF_EXISTS $table_name;";
+	return $wpdb->query($sql);
+}
 
 /** Function to handle save on DB get array of posted values,
 parse here then store. If DB table not found it will create **/
