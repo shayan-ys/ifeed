@@ -26,6 +26,10 @@
 .ifeed-post-generator .ifeed-preview > table > tbody > tr > td.execution-time-wrapper > input {width: 130px;}
 /* .ifeed-post-generator .ifeed-log-viewer .ifeed-preview {background: transparent url("arrow_right.png") no-repeat scroll 0 65px / 75px auto;margin-top: 119px;padding-left: 90px;} */
 
+/** List Table **/
+.ifeed-table-list .wp-list-table .ifeed-list-deactive, .ifeed-table-list .wp-list-table .ifeed-list-active {background: #009C67 none repeat scroll 0 0;border-radius: 50%;display: block;height: 12px;width: 12px;color:transparent;}
+.ifeed-table-list .wp-list-table .ifeed-list-deactive {background: #D91F0F none repeat scroll 0 0;}
+
 /** GENERAL **/
 [name="ifeed-settings"] input.error {border-color: #d9534f!important;}
 [name="ifeed-settings"] p.error {color: #d9534f!important;}

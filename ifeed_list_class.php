@@ -101,7 +101,8 @@ if ( class_exists( 'Ifeed_List' ) ) {wp_die( __('iFeed-error: duplicate class fo
 
 			$actions = [
 				'edit' => sprintf( '<a href="?page=%s&action=%s&ifeed=%s">Edit</a>', esc_attr( $_REQUEST['page']."-edit" ), 'edit', absint( $item['id'] ) ),
-				'delete' => sprintf( '<a href="?page=%s&action=%s&ifeed=%s&_wpnonce=%s">Delete</a>', esc_attr( $_REQUEST['page'] ), 'delete', absint( $item['id'] ), $delete_nonce )
+				'delete' => sprintf( '<a href="?page=%s&action=%s&ifeed=%s&_wpnonce=%s">Delete</a>', esc_attr( $_REQUEST['page'] ), 'delete', absint( $item['id'] ), $delete_nonce ),
+				'link' => sprintf( '<a href="%s">Preview</a>', esc_url(get_bloginfo('rss2_url')."ifeed?title=".$item['slug']) )
 			];
 			
 			$preview_text = $title;
@@ -129,7 +130,7 @@ if ( class_exists( 'Ifeed_List' ) ) {wp_die( __('iFeed-error: duplicate class fo
 			case 'manual':
 				return ($item[ $column_name ]==1)? "Manual" : "Auto";
 			case 'active':
-				return ($item[ $column_name ]==1)? "Active" : "Deactive";
+				return ($item[ $column_name ]==1)? "<span class='ifeed-list-active'>1</span>" : "<span class='ifeed-list-deactive'>0</span>";
 			default:
 				return print_r( $item, true ); //Show the whole array for troubleshooting purposes
 			}

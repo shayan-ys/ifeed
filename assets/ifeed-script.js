@@ -247,7 +247,7 @@ function ifeed_if_null( variable ) {
 function ifeed_load_posts(query) {
 	var security = jQuery('#security').val();
 	if( ifeed_if_null(ajax_ifeed_load_posts_object) || ifeed_if_null(security) || ifeed_if_null(query) ) return;
-	var last_run_in_log = jQuery(".ifeed-post-generator").find(".ifeed-log-viewer tbody > tr:first").find(".execution-time-wrapper").text();
+	var last_run_in_log = jQuery(".ifeed-post-generator").find(".ifeed-log-viewer tbody > tr:last").find(".execution-time-wrapper").text();
 	query_presenter.addClass("loading");
 	
 	jQuery.ajax({

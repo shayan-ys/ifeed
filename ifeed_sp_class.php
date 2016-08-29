@@ -58,7 +58,14 @@ if ( class_exists( 'SP_Ifeed' ) ) {wp_die( __('iFeed-error: duplicate class foun
 		* Plugin settings page
 		*/
 		public function ifeed_options_page_list() {
+			//blocking direct access to plugin PHP files
 			defined('ABSPATH') or die('Direct access to this script is blocked.');
+			//must check that the user has the required capability 
+			if (!current_user_can('manage_options') && !current_user_can('ifeed_admin'))
+				wp_die( __('You do not have sufficient permissions to access this page.') );
+			
+			wp_register_style('ifeed-style', plugins_url( 'assets/ifeed-style.css', __FILE__ ), null, '1.0.0', 'all' );
+			wp_enqueue_style('ifeed-style');			
 			?>
 			<div class="wrap">
 				<h2>
@@ -68,7 +75,7 @@ if ( class_exists( 'SP_Ifeed' ) ) {wp_die( __('iFeed-error: duplicate class foun
 				<?php $refresher_url = esc_url( get_permalink(intval(get_option('ifeed_refresher_page_id'))) . "?key=". get_option('ifeed_refresher_page_key') ); ?>
 				</h2>
 
-				<div id="poststuff">
+				<div id="poststuff" class="ifeed-table-list">
 					<b>Refresher URL: </b><a href="<?php echo $refresher_url; ?>"><?php echo $refresher_url ?></a>
 					<br/><b>Note: </b><em>You need to give this URL to your <b>cronjob</b> script, it should be call at least every hour.</em>
 					<div id="post-body" class="metabox-holder columns-2">

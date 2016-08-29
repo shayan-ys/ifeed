@@ -5,7 +5,7 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 		//blocking direct access to plugin PHP files
 		defined('ABSPATH') or die('Direct access to this script is blocked.');
 		//must check that the user has the required capability 
-		if (!current_user_can('manage_options') && !current_user_can('ifeed_create'))
+		if (!current_user_can('manage_options') && !current_user_can('ifeed_edit'))
 			wp_die( __('You do not have sufficient permissions to access this page.') );
 		
 		wp_register_script('ifeed-script', plugins_url( 'assets/ifeed-script.js', __FILE__ ), array('jquery'), '1.0.0', true );
@@ -227,6 +227,7 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 						</table>
 					</td><td class="right">
 						<div class="ifeed-preview ifeed-log-viewer">
+							<h2><?php _e("Log (previously aired posts)"); ?></h2>
 							<em class='caution'><b><?php _e("Note"); ?>:</b>&nbsp;<?php _e("Last element of below table is showing the post that is live on rss-ifeed right now, others shows previous posts were in ifeed."); ?></em>
 							<table>
 								<thead><tr>
