@@ -156,7 +156,55 @@ jQuery(document).ready(function($){
 		else
 			$(".ifeed-post-generator").find('[data-action="reload-query"]').click();
 	});
+	
+	$(".ifeed-post-generator").on("change", '[data-action="excluding-options"]', function(){
+		if( $(this).val().length < 1 ) return;
+		var posts_not_in_input = $('[data-name="post__not_in"]');
+		var posts_not_in_input_array = ifeed_string_to_int_array( posts_not_in_input.val() );
+		if(posts_not_in_input_array == null) posts_not_in_input_array = [];
+		var excluded_select = ifeed_string_to_int_array( $(this).val() );
+		posts_not_in_input_array = $.merge(posts_not_in_input_array, excluded_select);
+		posts_not_in_input.val( posts_not_in_input_array.join(",") );
+	});
 });
+
+function ifeed_go_online(ifeed_id) {
+	if( parseInt(ifeed_id) <1 ) alert("You must save ifeed before you will be able to use this functionality");
+	var confirmation = confirm('By clicking \'Yes\' this post ID will go online in your iFeed, Are you sure?')
+	if(confirmation == false) return;
+	var postid = parseInt( jQuery('.ifeed-post-viewer').find('[data-name="online-now-postid"]').val() ,10);
+	var security = jQuery('#security').val();
+	if(postid<1 || ifeed_if_null(security)) {console.log("input error"); return;}
+	
+	jQuery('[data-action="online-post-now"]').attr("disabled", "disabled");
+	
+	jQuery.ajax({
+		type: 'POST',
+		url: ajax_ifeed_load_posts_object.ajaxurl,
+		data: {
+			'action': 'ifeed_go_online',
+			'security': security,
+			'postid': postid,
+			'ifeed_id': ifeed_id
+		},
+		success: function (data) {
+			if( data=="empty_security" ) {
+				alert("security error!");
+				return;
+			}
+			if( data=="empty_ifeed" ) data="";
+			
+			if( data.indexOf("failed") != 0 ) {
+				var logs_container = jQuery(".ifeed-log-viewer tbody");
+				if( logs_container.find("tr").length >= logs_container.attr("data-limit") ) {
+					logs_container.find("tr").first().remove();
+				}
+				logs_container.append(data);
+			}
+			jQuery('[data-action="online-post-now"]').removeAttr("disabled");
+		}
+	});		
+}
 
 function ifeed_reset_offset() {
 	jQuery(".ifeed-post-generator").find('[data-name="offset"]').val("0");

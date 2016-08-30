@@ -85,9 +85,12 @@ add_action( 'plugins_loaded', function () {
 include_once( plugin_dir_path( __FILE__ ) . 'ifeed_edit_page.php' );
 
 /** ajax handler for post loader action **/
-include_once( plugin_dir_path( __FILE__ ) . 'ifeed_ajax_post_loader.php' );
+include_once( plugin_dir_path( __FILE__ ) . 'ifeed_ajax.php' );
 if( !function_exists('ifeed_ajax_post_loader') ) {wp_die( __('iFeed-error: function not found, include function: "ifeed_ajax_post_loader"') );} else {
 	add_action( 'wp_ajax_ifeed_load_posts', 'ifeed_ajax_post_loader' );
+}
+if( !function_exists('ifeed_ajax_go_online') ) {wp_die( __('iFeed-error: function not found, include function: "ifeed_ajax_go_online"') );} else {
+	add_action( 'wp_ajax_ifeed_go_online', 'ifeed_ajax_go_online' );
 }
 /** WP-admin END **/
 

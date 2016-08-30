@@ -1,4 +1,72 @@
 <?php
+if(function_exists('ifeed_ajax_go_online')) {wp_die( __('iFeed-error: Duplicate function name, remove function: "ifeed_ajax_go_online"') );} else {
+	function ifeed_ajax_go_online() {
+		ob_clean();
+		if(!isset($_POST) || !isset($_POST['security']) ) die("empty_security");
+		// First check the nonce, if it fails the function will break
+		check_ajax_referer('ajax-ifeed-panel-nonce', 'security');
+		
+		$post_id = intval($_POST['postid']);
+		$ifeed_ID = intval($_POST['ifeed_id']);
+		$ifeed = array();
+		if( !function_exists('ifeed_get_options_db') ) {die( __('iFeed-error: function not found, include function: "ifeed_get_options_db"') );} else {
+			$ifeed = ifeed_get_options_db($ifeed_ID);
+		}
+		if( count($ifeed)<1 ) die("empty_ifeed");
+		$online_posts = (isset($ifeed['online_posts'])&&count(json_decode($ifeed['online_posts'],true))>0)? json_decode($ifeed['online_posts'],true) : array();
+		$log_posts = (isset($ifeed['log_posts'])&&count(json_decode($ifeed['log_posts'],true))>0)? json_decode($ifeed['log_posts'],true) : array();
+		// pop from beginning of online_posts
+		array_shift($online_posts);						
+		// add at end of online_posts
+		array_push($online_posts, intval($post_id));
+		
+		global $current_user;
+		$now = new DateTime(null, new DateTimeZone('Asia/Tehran'));
+		$agent = json_encode(array(
+			'user_id' => get_current_user_id(),
+			'user_display_name' => $current_user->display_name,
+			'http_user_agent' => $_SERVER['HTTP_USER_AGENT']
+		));
+		// log this addition to ifeed
+		array_push($log_posts, array(
+			'post_id' => $post_id,
+			'promissed_exec_time' => $now->format("Y-m-d H:i:s"),
+			'added_time' => $now->format("Y-m-d H:i:s"),
+			'last_modified_agent' => stripslashes($agent)
+		));
+		if( !function_exists('ifeed_update_options_db') ) {die( __('iFeed-error: function not found, include function: "ifeed_update_options_db"') );} else {
+			$result = ifeed_update_options_db($ifeed_ID, array(
+				'online_posts' => json_encode($online_posts),
+				'log_posts' => json_encode($log_posts)
+			), array(
+				'%s',
+				'%s'
+			));
+			if($result) {
+				$post = null;
+				try{
+					$post = new WP_Query(array('p'=> $post_id ));
+				} catch(Exception $e) { echo "failed, Exception:". $e->getMessage();}
+				if ( strlen(serialize($post))>0 &&  $post->have_posts() ) :
+					while ( $post->have_posts() ) : $post->the_post();
+						?>
+						<tr>
+						<?php
+						$execution_string = $now->format("Y-m-d H:i:s");
+						ifeed_print_post_row(get_the_ID(), get_the_title(), get_the_permalink(), gmdate("Y-m-d", get_the_time('U')), get_the_post_thumbnail(null,'thumbnail'), count($log_posts)-1, $execution_string, false, false);
+						?>
+						<td>
+						<?php echo get_post_meta( $post_id, '_count-views_day-'.date('Ymd'), true ); ?>
+						</td>
+						</tr>
+						<?php
+					endwhile;
+				endif;
+			}
+		}	
+		die("failed");
+	}
+}
 if(function_exists('ifeed_ajax_post_loader')) {wp_die( __('iFeed-error: Duplicate function name, remove function: "ifeed_ajax_post_loader"') );} else {
 	function ifeed_ajax_post_loader() {
 		ob_clean();
@@ -67,10 +135,16 @@ if(function_exists('ifeed_ajax_post_loader')) {wp_die( __('iFeed-error: Duplicat
 			// }
 		}
 		
-		if(isset($query['post__not_in']) && $query['post__not_in']=="sticky" ) {
-			$query['post__not_in'] = get_option( 'sticky_posts' );
+		// if(isset($query['post__not_in']) && $query['post__not_in']=="sticky" ) {
+			// $query['post__not_in'] = get_option( 'sticky_posts' );
+			// $query['ignore_sticky_posts'] = 1;
+		// }
+		if(isset($query['post__not_in'])) {
+			$posts_not_array_string = preg_replace('/\s+/', '', $query['post__not_in']);
+			$query['post__not_in'] = explode(',', $posts_not_array_string);
 			$query['ignore_sticky_posts'] = 1;
 		}
+		
 		
 		$query['caller_get_posts'] = 1;
 		

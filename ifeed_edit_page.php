@@ -216,10 +216,11 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 								<tr valign="top">
 									<th scope="row"><?php _e("Exclude posts in"); ?></th>
 									<td><fieldset><p>
-										<select class="ifeed-query-builder" data-name="post__not_in">
-											<option value="" <?php echo (!isset($vals['ifeed-auto-query']['post__not_in']))? 'selected="selected"' : ''; ?>><?php _e("ignore"); ?></option>
-											<option value="sticky" <?php echo ($vals['ifeed-auto-query']['post__not_in']=="get_option('sticky_posts')")? 'selected="selected"' : ''; ?> ><?php _e("Sticky Posts"); ?></option>
+										<select data-action="excluding-options">
+											<option value=""><?php _e("ignore"); ?></option>
+											<option value="<?php echo implode(',', get_option('sticky_posts')); ?>" ><?php _e("Sticky Posts"); ?></option>
 										</select>
+										<br /><input type="text" placeholder="Excluded posts ',' delimited" value="<?php echo $vals['ifeed-auto-query']['post__not_in']; ?>" data-name="post__not_in" class="ifeed-query-builder" />
 										<br /><em><b><?php _e("Caution"); ?></b>:&nbsp;<?php _e("changing this value will reset the offset."); ?></em>
 									</fieldset></td></p>
 								</tr>
@@ -238,12 +239,15 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 									<th><?php _e("Executed Time"); ?></th>
 									<th><?php _e("View Counts <br/>(daily)"); ?></th>
 								</tr></thead>
-								<tbody>
+								<?php
+								$log_posts_limit = 5;
+								?>
+								<tbody data-limit="<?php echo $log_posts_limit; ?>">
 								<?php
 								if(isset($vals['log_posts']))
 									$vals['log_posts'] = json_decode($vals['log_posts'], true);
 								if( is_array($vals['log_posts']) && count($vals['log_posts'])>0 ) {
-									array_slice($vals['log_posts'], 5);
+									array_slice($vals['log_posts'], $log_posts_limit);
 									foreach( $vals['log_posts'] as $index=>$log_post ) {
 										$post = null;
 										try{
@@ -285,6 +289,11 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 								<option value="25">25</option>
 								<option value="50">50</option>
 							</select>
+							<?php if($ifeed_ID!="") { ?>
+								&nbsp;<label for="online-now-postid" class="online-now"><?php _e("Go Online Now"); ?></label>
+								<input type="text" data-name="online-now-postid" id="online-now-postid" class="online-now" placeholder="Post ID" value="" />
+								<button type="button" data-action="online-post-now" class="button-primary online-now" onclick="ifeed_go_online(<?php echo $ifeed_ID; ?>)" ><?php _e("Online Now"); ?></button>
+							<?php } ?>
 							<table>
 								<thead><tr>
 									<th><?php _e("post ID"); ?></th>
