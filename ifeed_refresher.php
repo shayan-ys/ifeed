@@ -1,16 +1,16 @@
 <?php
-if(function_exists('ifeed_refresher')) {wp_die( __('iFeed-error: Duplicate function name, remove function: "ifeed_refresher"') );} else {
+if(function_exists('ifeed_refresher')) {die( __('iFeed-error: Duplicate function name, remove function: "ifeed_refresher"') );} else {
 	function ifeed_refresher() {
-		if( !function_exists('ifeed_get_options_db') ) {wp_die( __('iFeed-error: function not found, include function: "ifeed_get_options_db"') );} else {
+		if( !function_exists('ifeed_get_options_db') ) {die( __('iFeed-error: function not found, include function: "ifeed_get_options_db"') );} else {
 			$ifeeds = ifeed_get_options_db(array('active'=>1));
 			echo "Welcom to iFeed Refresher script (don't worry no one else can see this script)";
 			echo "<pre style='direction:ltr!important; text-align:left!important;'>";
 			foreach($ifeeds as $key=>$ifeed) {
 				echo "active ifeed_id=".$ifeed['id']. "<br />";
 				if( intval($ifeed['manual'])==1 ) {
-					// is manual
+					// is manual.
 					$manual_posts = json_decode($ifeed['query'], true);
-					if(count($manual_posts)<1) continue; return null;
+					if(count($manual_posts)<1) {continue; die("null");}
 					$online_posts = (isset($ifeed['online_posts']) && $ifeed['online_posts']!=null)? json_decode($ifeed['online_posts'], true) : array();
 					$log_posts = (isset($ifeed['log_posts']) && $ifeed['log_posts']!=null)? json_decode($ifeed['log_posts'], true) : array();
 					$manual_post_next = reset($manual_posts);
@@ -33,7 +33,7 @@ if(function_exists('ifeed_refresher')) {wp_die( __('iFeed-error: Duplicate funct
 							'last_modified_agent' => stripslashes($ifeed['agent'])
 						));
 						echo "<br />added: ".$manual_post_next['post_id'];
-						if( !function_exists('ifeed_update_options_db') ) {wp_die( __('iFeed-error: function not found, include function: "ifeed_update_options_db"') );} else {
+						if( !function_exists('ifeed_update_options_db') ) {die( __('iFeed-error: function not found, include function: "ifeed_update_options_db"') );} else {
 							ifeed_update_options_db($ifeed['id'], array(
 								'query' => json_encode($manual_posts),
 								'online_posts' => json_encode($online_posts),
