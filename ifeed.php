@@ -2,7 +2,7 @@
 /*
 Plugin Name: iFeed
 Description: Iterating feed for WordPress
-Version: 1.0.1
+Version: 1.0.2
 Author: Shayan Ys
 Author URI: http://www.shayanys.com/
 Company: BE360
@@ -102,6 +102,18 @@ function ifeed_add_action_links ( $links ) {
 		'<a href="' . admin_url( 'options-general.php?page=ifeed-settings' ) . '">Settings</a>',
 	);
 	return array_merge( $mylinks, $links );
+}
+add_filter( 'plugin_row_meta', 'ifeed_add_meta_links', 10, 2 );
+function ifeed_add_meta_links( $links, $file ) {
+	$plugin = plugin_basename(__FILE__);
+	// create link
+	if ( $file == $plugin ) {
+		return array_merge(
+			$links,
+			array( __('Company').': <a href="http://www.be360.ir">BE360</a>' , __('Project').': <a href="http://www.chetor.com">Chetor.com</a>' )
+		);
+	}
+	return $links;
 }
 /** Plugins page END **/
 
