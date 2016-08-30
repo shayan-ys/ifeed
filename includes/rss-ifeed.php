@@ -36,11 +36,11 @@ echo '<?xml version="1.0" encoding="'.get_option('blog_charset').'"?'.'>';
 				}
 			}
 		}
-		if($ifeed_slug===false) {
-			// default query
-			global $wp_query;
-			$ifeed_posts = $wp_query;
-		}
+		// if($ifeed_slug===false) {
+			// // default query
+			// global $wp_query;
+			// $ifeed_posts = $wp_query;
+		// }
 		?>
         <title><?php bloginfo_rss('name'); ?> - Feed</title>
         <atom:link href="<?php self_link(); ?>" rel="self" type="application/rss+xml" />

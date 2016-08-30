@@ -3,7 +3,7 @@ if(function_exists('ifeed_refresher')) {wp_die( __('iFeed-error: Duplicate funct
 	function ifeed_refresher() {
 		if( !function_exists('ifeed_get_options_db') ) {wp_die( __('iFeed-error: function not found, include function: "ifeed_get_options_db"') );} else {
 			$ifeeds = ifeed_get_options_db(array('active'=>1));
-			echo "hello world";
+			echo "Welcom to iFeed Refresher script (don't worry no one else can see this script)";
 			echo "<pre style='direction:ltr!important; text-align:left!important;'>";
 			foreach($ifeeds as $key=>$ifeed) {
 				echo "active ifeed_id=".$ifeed['id']. "<br />";
@@ -70,41 +70,32 @@ if(function_exists('ifeed_refresher')) {wp_die( __('iFeed-error: Duplicate funct
 						
 						$online_posts = (isset($ifeed['online_posts']) && $ifeed['online_posts']!=null)? json_decode($ifeed['online_posts'], true) : array();
 						
-						$query['offset'] = intval($ifeed['offset']);	
-						
-						if(isset($query['tag__not_in']) && $query['tag__not_in']!="") {
-							$tags_not_array_string = $query['tag__not_in'];
-							$tags_not_array_string = preg_replace('/\s+/', '', $tags_not_array_string);
-							$tags_not_array = explode(",", $tags_not_array_string);
-							$query['tag__not_in'] = $tags_not_array;
-							// foreach($tags_not_array as $tag_not_slug) {
-								// if(!function_exists('get_term_by')) break;
-								// var_dump($tag_not_slug);
-								// $tag_not_obj = get_term_by('slug', $tag_not_slug);
-								// var_dump($tag_not_obj);
-								// // $query['tag__not_in'][] = $tag_not_obj->term_id;
-							// }
-						}
-						
-						if(isset($query['post__not_in']) && $query['post__not_in'] !== false) {
-							$query['post__not_in'] = json_decode($query['post__not_in'], true);
-						}
-						
 						$posts = null;
 						$next_post_id = false;
 						try{
-							$posts = new WP_Query($query);
-							// var_dump($query);
-							// var_dump($posts);
+							if(isset($ifeed['exact_query']) && strlen($ifeed['exact_query'])>0) {
+								$posts = ifeed_get_by_query_db(stripslashes($ifeed['exact_query']));
+								echo "query: ".stripslashes($ifeed['exact_query'])."<hr/>";
+								$next_post = reset($posts);
+								if( isset($next_post['ID']) )
+									$next_post_id = $next_post['ID'];
+								echo "next_post_id=". $next_post_id;
+							}
+								
+							if($next_post_id==false) {
+								$posts = new WP_Query($query);
+								// var_dump($query);
+								// var_dump($posts);
+								if ( strlen(serialize($posts))>0 &&  $posts->have_posts() ) :
+									while ( $posts->have_posts() ) : $posts->the_post();
+										$next_post_id = get_the_ID();
+										break;
+									endwhile;
+								else :
+									die("empty_post");
+								endif;								
+							}
 						} catch(Exception $e) {echo "Exception:". $e->getMessage(); die();}
-						if ( strlen(serialize($posts))>0 &&  $posts->have_posts() ) :
-							while ( $posts->have_posts() ) : $posts->the_post();
-								$next_post_id = get_the_ID();
-								break;
-							endwhile;
-						else :
-							die("empty_post");
-						endif;
 						
 						if($next_post_id !== false) {
 							// pop from beginning of online_posts

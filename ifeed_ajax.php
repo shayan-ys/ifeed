@@ -139,14 +139,12 @@ if(function_exists('ifeed_ajax_post_loader')) {wp_die( __('iFeed-error: Duplicat
 			// $query['post__not_in'] = get_option( 'sticky_posts' );
 			// $query['ignore_sticky_posts'] = 1;
 		// }
-		if(isset($query['post__not_in'])) {
+		if(isset($query['post__not_in']) && strlen($query['post__not_in'])>0) {
 			$posts_not_array_string = preg_replace('/\s+/', '', $query['post__not_in']);
 			$query['post__not_in'] = explode(',', $posts_not_array_string);
 			$query['ignore_sticky_posts'] = 1;
+			$query['caller_get_posts'] = 1;
 		}
-		
-		
-		$query['caller_get_posts'] = 1;
 		
 		$posts = null;
 		try{
@@ -174,6 +172,7 @@ if(function_exists('ifeed_ajax_post_loader')) {wp_die( __('iFeed-error: Duplicat
 				ifeed_print_post_row(get_the_ID(), get_the_title(), get_the_permalink(), gmdate("Y-m-d", get_the_time('U')), get_the_post_thumbnail(null,'thumbnail'), $index, $execution_string, (!isset($query['p'])));
 				$index++;
 			endwhile;
+			echo "<input type='hidden' name='exact_query' value=\"".$posts->request."\"/>";
 			wp_reset_query();
 		else :
 			die("empty_post");

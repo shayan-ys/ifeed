@@ -10,6 +10,7 @@ function ifeed_create_table_db($table_name) {
 		description TEXT,
 		manual INT NOT NULL,
 		query TEXT NOT NULL,
+		exact_query TEXT,
 		offset INT DEFAULT 0,
 		online_posts TEXT,
 		log_posts TEXT,
@@ -82,6 +83,11 @@ if(function_exists('ifeed_save_options_db')) {wp_die( __('iFeed-error: Duplicate
 		if( isset($vals['offset']) && $vals['offset']!=null && $vals['offset']!="" && $vals['offset']!==false ) {
 			$query_vars['offset'] = intval($vals['offset']);
 			$query_format[] = '%d';
+		}		
+		
+		if( isset($vals['exact_query']) && $vals['exact_query']!=null && $vals['exact_query']!="" && $vals['exact_query']!==false ) {
+			$query_vars['exact_query'] = $vals['exact_query'];
+			$query_format[] = '%s';
 		}
 		
 		if($query_type=="insert") {
@@ -98,7 +104,17 @@ if(function_exists('ifeed_save_options_db')) {wp_die( __('iFeed-error: Duplicate
 		// echo $wpdb->last_query;
 	}
 }
+if(function_exists('ifeed_get_by_query_db')) {wp_die( __('iFeed-error: Duplicate function name, remove function: "ifeed_get_by_query_db"') );} else {
+	function ifeed_get_by_query_db($query, $output=ARRAY_A) {
+		global $wpdb, $current_user;
+		$table_name = $wpdb->prefix.'ifeed';
 
+		try {
+			$results = $wpdb->get_results( $query, $output );
+			return $results;
+		} catch(Exception $e) {return false;}
+	}
+}
 if(function_exists('ifeed_update_options_db')) {wp_die( __('iFeed-error: Duplicate function name, remove function: "ifeed_update_options_db"') );} else {
 	function ifeed_update_options_db($ifeed_ID, $query_vars, $query_format) {
 		global $wpdb, $current_user;

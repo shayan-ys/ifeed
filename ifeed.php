@@ -2,6 +2,7 @@
 /*
 Plugin Name: iFeed
 Description: Iterating feed for WordPress
+Version: 1.0.1
 Author: Shayan Ys
 Author URI: http://www.shayanys.com/
 Company: BE360
