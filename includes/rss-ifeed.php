@@ -16,24 +16,24 @@ echo '<?xml version="1.0" encoding="'.get_option('blog_charset').'"?'.'>';
 <channel>
 		<?php
 		$ifeed_posts = false;
-		$ifeed_slug = null;
+		$ifeed_slug = "default";
 		if(isset($_GET['title']) && strlen($_GET['title'])>1) {
 			$ifeed_slug = esc_sql($_GET['title']);
-			if(function_exists('ifeed_get_value_db')){
-				$ifeed = ifeed_get_value_db('slug', $ifeed_slug );
-				$online_posts = json_decode($ifeed['online_posts'], true);
-				if(is_array($online_posts) && count($online_posts)>0) {
-					$ifeed_posts = new WP_Query(array(
-						'order' => 'ASC',
-						'post__not_in' => get_option( 'sticky_posts' ),
-						'post__in' => $online_posts
-					));
-				}
-				if(isset($ifeed['utm']) && strlen($ifeed['utm'])>0) {
-					$utm = htmlentities( "?".$ifeed['utm'] );
-				} else {
-					$utm = null;
-				}
+		}
+		if(function_exists('ifeed_get_value_db')){
+			$ifeed = ifeed_get_value_db('slug', $ifeed_slug );
+			$online_posts = json_decode($ifeed['online_posts'], true);
+			if(is_array($online_posts) && count($online_posts)>0) {
+				$ifeed_posts = new WP_Query(array(
+					'order' => 'ASC',
+					'post__not_in' => get_option( 'sticky_posts' ),
+					'post__in' => $online_posts
+				));
+			}
+			if(isset($ifeed['utm']) && strlen($ifeed['utm'])>0) {
+				$utm = htmlentities( "?".$ifeed['utm'] );
+			} else {
+				$utm = null;
 			}
 		}
 		// if($ifeed_slug===false) {

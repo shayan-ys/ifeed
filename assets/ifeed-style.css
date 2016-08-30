@@ -22,7 +22,7 @@
 .ifeed-post-generator .ifeed-preview.ifeed-log-viewer  > table > tbody > tr:nth-last-child(5) {opacity: 0.4;}
 .ifeed-post-generator .ifeed-preview.ifeed-log-viewer  > table {margin-top:15px;}
 .ifeed-post-generator .ifeed-preview > table > tbody > tr > td {padding-top:0; padding-bottom:0;}
-.ifeed-post-generator .ifeed-preview > table > tbody > tr > td.post-id-wrapper > input {width:45px; text-align:center;}
+.ifeed-post-generator .ifeed-preview > table > tbody > tr > td.post-id-wrapper > input {width:60px; text-align:center;}
 .ifeed-post-generator .ifeed-preview > table > tbody > tr > td.img-wrapper {width:60px; height:60px;}
 .ifeed-post-generator .ifeed-preview > table > tbody > tr > td.img-wrapper > img {width:60px; height:60px;}
 .ifeed-post-generator .ifeed-preview > table > tbody > tr > td.execution-time-wrapper > input {width: 130px;}

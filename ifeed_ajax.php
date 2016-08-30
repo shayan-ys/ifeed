@@ -62,9 +62,11 @@ if(function_exists('ifeed_ajax_go_online')) {wp_die( __('iFeed-error: Duplicate 
 						<?php
 					endwhile;
 				endif;
+				die();
+			} else {
+				die("update failed");
 			}
-		}	
-		die("failed");
+		}
 	}
 }
 if(function_exists('ifeed_ajax_post_loader')) {wp_die( __('iFeed-error: Duplicate function name, remove function: "ifeed_ajax_post_loader"') );} else {
