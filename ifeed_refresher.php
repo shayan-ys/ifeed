@@ -5,7 +5,7 @@ if(function_exists('ifeed_refresher')) {die( __('iFeed-error: Duplicate function
 			$ifeeds = ifeed_get_options_db(array('active'=>1));
 			echo "Welcom to iFeed Refresher script (don't worry no one else can see this script)";
 			$now = new DateTime(null, new DateTimeZone('Asia/Tehran'));
-			$now->setTime( "14", $now->format("i"), $now->format("s") );
+			// $now->setTime( "14", $now->format("i"), $now->format("s") );
 			echo "<hr />Current time is: ". $now->format("Y-m-d H:i:s")."<br />";
 			echo "<pre style='direction:ltr!important; text-align:left!important;'>";
 			foreach($ifeeds as $key=>$ifeed) {
