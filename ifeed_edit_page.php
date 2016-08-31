@@ -32,9 +32,7 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 				if(!function_exists('ifeed_get_value_db')) {wp_die( __('iFeed-error: function not found: "ifeed_get_value_db"') );} else {
 					$result = ifeed_get_value_db("slug", $vals['ifeed-slug']);
 				}
-				if($result===false || 
-					(is_array($result) && count($result)>0 && (!isset($result['id']) || (isset($_GET) && isset($_GET['ifeed']) && isset($result['id']) && $result['id']!=$_GET['ifeed']))  ) 
-				)
+				if( is_array($result) && count($result)>0 && isset($result['id']) && ( !isset($_GET['ifeed']) || $result['id']!=$_GET['ifeed'] ) )
 					$input_errors['ifeed-slug'] = "duplicated";
 			}
 			if( isset($vals['ifeed-auto-query']) )

@@ -304,6 +304,7 @@ function ifeed_load_posts(query) {
 	var security = jQuery('#security').val();
 	if( ifeed_if_null(ajax_ifeed_load_posts_object) || ifeed_if_null(security) || ifeed_if_null(query) ) return;
 	var last_run_in_log = jQuery(".ifeed-post-generator").find(".ifeed-log-viewer tbody > tr:last").find(".execution-time-wrapper").text();
+	var ifeed_id = jQuery('[name="ifeed_id"]').val();
 	query_presenter.addClass("loading");
 	
 	jQuery.ajax({
@@ -314,7 +315,7 @@ function ifeed_load_posts(query) {
 			'security': security,
 			'query': query,
 			'hours_set': JSON.stringify(ifeed_hours_set()),
-			'last_run_in_log': last_run_in_log
+			'ifeed_id': ifeed_id
 		},
 		success: function (data) {
 			if( data=="empty_security" ) {

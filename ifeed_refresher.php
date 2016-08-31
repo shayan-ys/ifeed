@@ -5,20 +5,23 @@ if(function_exists('ifeed_refresher')) {die( __('iFeed-error: Duplicate function
 			$ifeeds = ifeed_get_options_db(array('active'=>1));
 			echo "Welcom to iFeed Refresher script (don't worry no one else can see this script)";
 			$now = new DateTime(null, new DateTimeZone('Asia/Tehran'));
-			// $now->setTime( "14", $now->format("i"), $now->format("s") );
+			// $now->setDate( $now->format("Y"), "09", "01" );
+			// $now->setTime( "16", $now->format("i"), $now->format("s") );
 			echo "<hr />Current time is: ". $now->format("Y-m-d H:i:s")."<br />";
 			echo "<pre style='direction:ltr!important; text-align:left!important;'>";
 			foreach($ifeeds as $key=>$ifeed) {
-				echo "active ifeed_id=".$ifeed['id']. "<br />";
+				echo "<hr /><hr />active ifeed_id=".$ifeed['id'];
 				if( intval($ifeed['manual'])==1 ) {
 					// is manual.
+					echo " is manual";
 					$manual_posts = json_decode($ifeed['query'], true);
 					if(count($manual_posts)<1) {continue; die("null");}
 					$online_posts = (isset($ifeed['online_posts']) && $ifeed['online_posts']!=null)? json_decode($ifeed['online_posts'], true) : array();
 					$log_posts = (isset($ifeed['log_posts']) && $ifeed['log_posts']!=null)? json_decode($ifeed['log_posts'], true) : array();
 					$manual_post_next = reset($manual_posts);
+					if(isset($manual_post_next['exec_time'])) { $manual_post_next['exec_time'] = date("Y-m-d H:00", strtotime($manual_post_next['exec_time'])); }
 					$curr_day_hour = $now->format('Y-m-d H:00');
-					echo $curr_day_hour;
+					// echo $curr_day_hour;
 					if( isset($manual_post_next['exec_time']) && $curr_day_hour == $manual_post_next['exec_time'] ) {
 						// now it's the time!
 						echo "<br />now its the time!";
@@ -56,6 +59,7 @@ if(function_exists('ifeed_refresher')) {die( __('iFeed-error: Duplicate function
 					}
 				} else {
 					// auto query
+					echo " is auto<br/>";
 					$query = json_decode($ifeed['query'], true);
 					$offset = $ifeed['offset'];
 					$hours_set = json_decode($query['hours_set']);
@@ -64,10 +68,14 @@ if(function_exists('ifeed_refresher')) {die( __('iFeed-error: Duplicate function
 					$curr_day_hour = $now->format('Y-m-d H:00');
 					
 					$log_posts = (isset($ifeed['log_posts']) && $ifeed['log_posts']!=null)? json_decode($ifeed['log_posts'], true) : array();
-					$last_log_post = end($log_posts);
+					$duplicated_in_hour = false;
+					foreach($log_posts as $log_post) {
+						if( isset($log_post['promissed_exec_time']) && date( "Y-m-d H:00", strtotime($log_post['promissed_exec_time']) ) == $curr_day_hour )
+							$duplicated_in_hour = "duplicated_in:".$log_post['promissed_exec_time'];
+					}
+					
 					// var_dump($query);
-					if( in_array($curr_hour, $hours_set) &&
-						(!isset($last_log_post['promissed_exec_time']) || $last_log_post['promissed_exec_time'] != $curr_day_hour) ) {
+					if( in_array($curr_hour, $hours_set) && $duplicated_in_hour==false ) {
 						// it might be the time, also not equal to last run saved in log
 						
 						$online_posts = (isset($ifeed['online_posts']) && $ifeed['online_posts']!=null)? json_decode($ifeed['online_posts'], true) : array();
@@ -75,14 +83,14 @@ if(function_exists('ifeed_refresher')) {die( __('iFeed-error: Duplicate function
 						$posts = null;
 						$next_post_id = false;
 						try{
-							if(isset($ifeed['exact_query']) && strlen($ifeed['exact_query'])>0) {
+							if(isset($ifeed['exact_query']) && strlen($ifeed['exact_query'])>10) {
 								$ifeed['exact_query'] = substr_replace( $ifeed['exact_query'], "LIMIT ".$offset.", 1;", strpos($ifeed['exact_query'], "LIMIT") );
 								$posts = ifeed_get_by_query_db(stripslashes($ifeed['exact_query']));
-								echo "query: ".stripslashes($ifeed['exact_query'])."<hr/>";
+								echo "<br/>query: ".stripslashes($ifeed['exact_query'])."<hr/>";
 								$next_post = reset($posts);
 								if( isset($next_post['ID']) )
 									$next_post_id = $next_post['ID'];
-								echo "next_post_id=". $next_post_id;
+								echo "next_post_id from exact_query=". $next_post_id;
 							}
 								
 							if($next_post_id==false) {
@@ -92,10 +100,11 @@ if(function_exists('ifeed_refresher')) {die( __('iFeed-error: Duplicate function
 								if ( strlen(serialize($posts))>0 &&  $posts->have_posts() ) :
 									while ( $posts->have_posts() ) : $posts->the_post();
 										$next_post_id = get_the_ID();
+										echo "next_post_id from WP_Query=".$next_post_id;
 										break;
 									endwhile;
 								else :
-									die("empty_post");
+									continue; die("empty_post");
 								endif;								
 							}
 						} catch(Exception $e) {echo "Exception:". $e->getMessage(); die();}
@@ -133,7 +142,8 @@ if(function_exists('ifeed_refresher')) {die( __('iFeed-error: Duplicate function
 							}							
 						}
 						
-					}
+					} 
+					else if( $duplicated_in_hour!==false ) { echo $duplicated_in_hour."<br />"; }
 				}
 			}
 			echo "</pre>";

@@ -51,6 +51,7 @@ if(function_exists('ifeed_save_options_db')) {wp_die( __('iFeed-error: Duplicate
 			'description' => $vals['ifeed-desc'],
 			'manual' => $is_manual,
 			'query' => ($is_manual===1)? $vals['ifeed-manual-posts'] : $vals['ifeed-auto-query'],
+			'exact_query' => (isset($vals['exact_query']) && $vals['exact_query']!=null && $vals['exact_query']!="" && $vals['exact_query']!=false)? $vals['exact_query'] : "",
 			'agent' => json_encode(array(
 				'user_id' => get_current_user_id(),
 				'user_display_name' => $current_user->display_name,
@@ -66,6 +67,7 @@ if(function_exists('ifeed_save_options_db')) {wp_die( __('iFeed-error: Duplicate
 			'%d',
 			'%s',
 			'%s',
+			'%s',
 			'%d'
 		);
 		
@@ -74,20 +76,14 @@ if(function_exists('ifeed_save_options_db')) {wp_die( __('iFeed-error: Duplicate
 		if( isset($vals['ifeed_id']) && intval($vals['ifeed_id'])>0 ) {
 			$ifeed_ID = intval($vals['ifeed_id']);
 			$query_type = "update";
+			if( isset($vals['offset']) && $vals['offset']!=null && $vals['offset']!="" && $vals['offset']!==false ) {
+				$query_vars['offset'] = intval($vals['offset']);
+				$query_format[] = '%d';
+			}
 		} else {
 			// new record and not update
 			$query_vars['offset'] = intval(0);
 			$query_format[] = '%d';
-		}
-		
-		if( isset($vals['offset']) && $vals['offset']!=null && $vals['offset']!="" && $vals['offset']!==false ) {
-			$query_vars['offset'] = intval($vals['offset']);
-			$query_format[] = '%d';
-		}		
-		
-		if( isset($vals['exact_query']) && $vals['exact_query']!=null && $vals['exact_query']!="" && $vals['exact_query']!==false ) {
-			$query_vars['exact_query'] = $vals['exact_query'];
-			$query_format[] = '%s';
 		}
 		
 		if($query_type=="insert") {
