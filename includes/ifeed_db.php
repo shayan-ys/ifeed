@@ -51,7 +51,7 @@ if(function_exists('ifeed_save_options_db')) {wp_die( __('iFeed-error: Duplicate
 			'description' => $vals['ifeed-desc'],
 			'manual' => $is_manual,
 			'query' => ($is_manual===1)? $vals['ifeed-manual-posts'] : $vals['ifeed-auto-query'],
-			'exact_query' => (isset($vals['exact_query']) && $vals['exact_query']!=null && $vals['exact_query']!="" && $vals['exact_query']!=false)? $vals['exact_query'] : "",
+			'exact_query' => (isset($vals['exact_query']) && $vals['exact_query']!=null && $vals['exact_query']!="" && $vals['exact_query']!=false && $is_manual!==1)? $vals['exact_query'] : "",
 			'agent' => json_encode(array(
 				'user_id' => get_current_user_id(),
 				'user_display_name' => $current_user->display_name,

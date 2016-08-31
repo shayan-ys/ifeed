@@ -332,7 +332,7 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 				</table>
 				
 				<input type="hidden" name="ifeed-auto-query" value='<?php echo $_POST['ifeed-auto-query'] ?>' />
-				<input type="hidden" name="ifeed-manual-posts" value='<?php echo $vals['ifeed-manual-posts'] ?>' />
+				<input type="hidden" name="ifeed-manual-posts" value='<?php echo json_encode($vals['ifeed-manual-posts']); ?>' />
 				
 				<p class="submit">
 					<input type="submit" name="active" class="button-primary" value="<?php _e("Save & Active"); ?>" />

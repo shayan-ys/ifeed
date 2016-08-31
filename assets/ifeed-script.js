@@ -120,6 +120,7 @@ jQuery(document).ready(function($){
 		query.post_type = "post";
 		query.post_status = "publish";
 		query.p = $(this).val();
+		if( $(this).val().length < 1 ) { td_id_wrapper.find("input").addClass("error"); return; }
 		query = JSON.stringify(query);
 		
 		if( ifeed_if_null(ajax_ifeed_load_posts_object) || ifeed_if_null(security) || ifeed_if_null(query) ) return;
