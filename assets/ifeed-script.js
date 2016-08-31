@@ -102,8 +102,9 @@ jQuery(document).ready(function($){
 		$(this).removeClass("error");
 			
 		query_presenter.addClass("loading");
-		ifeed_sort_by_date();
 		query_presenter.find('[data-id="'+input_id+'"]').val(changed_value);
+		query_presenter.find('[data-id="'+input_id+'"]').attr("value", changed_value);
+		ifeed_sort_by_date();
 		query_presenter.removeClass("loading");
 		
 		ifeed_switchto_manual_query();
@@ -264,14 +265,21 @@ function ifeed_update_preview() {
 
 function ifeed_hours_set() {
 	var hours_string = jQuery(".ifeed-post-generator").find('[data-name="hours-array"]').val();
-	return ifeed_string_to_int_array(hours_string);
+	return ifeed_string_to_int_array(hours_string, 0, 23);
 }
 
-function ifeed_string_to_int_array( string ) {
+function ifeed_string_to_int_array( string, int_min, int_max ) {
+	int_min = (typeof int_min === 'undefined') ? 0 : int_min;
+	int_max = (typeof int_max === 'undefined') ? 9999 : int_max;
+	
 	if( ifeed_if_null(string) ) return;
 	var output_array = string.split(',');
 	for(var i = 0; i < output_array.length; i++) {
 		output_array[i] = parseInt(output_array[i], 10);
+		if( output_array[i] < int_min )
+			output_array[i] = int_min;
+		else if( output_array[i] > int_max )
+			output_array[i] = int_max;
 	}
 	return output_array;	
 }

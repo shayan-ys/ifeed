@@ -247,8 +247,11 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 								if(isset($vals['log_posts']))
 									$vals['log_posts'] = json_decode($vals['log_posts'], true);
 								if( is_array($vals['log_posts']) && count($vals['log_posts'])>0 ) {
-									array_slice($vals['log_posts'], $log_posts_limit);
+									$vals['log_posts'] = array_slice($vals['log_posts'], -5);
+									// $vals['log_posts'] = array_reverse($vals['log_posts']);
+									$i=0;
 									foreach( $vals['log_posts'] as $index=>$log_post ) {
+										// if($i++ >= $log_posts_limit) break;
 										$post = null;
 										try{
 											$post = new WP_Query(array('p'=> $log_post['post_id'] ));
@@ -291,7 +294,7 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 							</select>
 							<?php if($ifeed_ID!="") { ?>
 								&nbsp;<label for="online-now-postid" class="online-now"><?php _e("Go Online Now"); ?></label>
-								<input type="text" data-name="online-now-postid" id="online-now-postid" class="online-now" placeholder="Post ID" value="" />
+								<input type="text" data-post_title="" data-name="online-now-postid" id="online-now-postid" class="online-now" placeholder="Post ID" value="" />
 								<button type="button" data-action="online-post-now" class="button-primary online-now" onclick="ifeed_go_online(<?php echo $ifeed_ID; ?>)" ><?php _e("Online Now"); ?></button>
 							<?php } ?>
 							<table>

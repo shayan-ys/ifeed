@@ -4,6 +4,9 @@ if(function_exists('ifeed_refresher')) {die( __('iFeed-error: Duplicate function
 		if( !function_exists('ifeed_get_options_db') ) {die( __('iFeed-error: function not found, include function: "ifeed_get_options_db"') );} else {
 			$ifeeds = ifeed_get_options_db(array('active'=>1));
 			echo "Welcom to iFeed Refresher script (don't worry no one else can see this script)";
+			$now = new DateTime(null, new DateTimeZone('Asia/Tehran'));
+			$now->setTime( "14", $now->format("i"), $now->format("s") );
+			echo "<hr />Current time is: ". $now->format("Y-m-d H:i:s")."<br />";
 			echo "<pre style='direction:ltr!important; text-align:left!important;'>";
 			foreach($ifeeds as $key=>$ifeed) {
 				echo "active ifeed_id=".$ifeed['id']. "<br />";
@@ -14,7 +17,6 @@ if(function_exists('ifeed_refresher')) {die( __('iFeed-error: Duplicate function
 					$online_posts = (isset($ifeed['online_posts']) && $ifeed['online_posts']!=null)? json_decode($ifeed['online_posts'], true) : array();
 					$log_posts = (isset($ifeed['log_posts']) && $ifeed['log_posts']!=null)? json_decode($ifeed['log_posts'], true) : array();
 					$manual_post_next = reset($manual_posts);
-					$now = new DateTime(null, new DateTimeZone('Asia/Tehran'));
 					$curr_day_hour = $now->format('Y-m-d H:00');
 					echo $curr_day_hour;
 					if( isset($manual_post_next['exec_time']) && $curr_day_hour == $manual_post_next['exec_time'] ) {
@@ -55,9 +57,9 @@ if(function_exists('ifeed_refresher')) {die( __('iFeed-error: Duplicate function
 				} else {
 					// auto query
 					$query = json_decode($ifeed['query'], true);
+					$offset = $ifeed['offset'];
 					$hours_set = json_decode($query['hours_set']);
 					unset($query['hours_set']);
-					$now = new DateTime(null, new DateTimeZone('Asia/Tehran'));
 					$curr_hour = (int)$now->format('H');
 					$curr_day_hour = $now->format('Y-m-d H:00');
 					
@@ -74,6 +76,7 @@ if(function_exists('ifeed_refresher')) {die( __('iFeed-error: Duplicate function
 						$next_post_id = false;
 						try{
 							if(isset($ifeed['exact_query']) && strlen($ifeed['exact_query'])>0) {
+								$ifeed['exact_query'] = substr_replace( $ifeed['exact_query'], "LIMIT ".$offset.", 1;", strpos($ifeed['exact_query'], "LIMIT") );
 								$posts = ifeed_get_by_query_db(stripslashes($ifeed['exact_query']));
 								echo "query: ".stripslashes($ifeed['exact_query'])."<hr/>";
 								$next_post = reset($posts);
@@ -114,7 +117,7 @@ if(function_exists('ifeed_refresher')) {die( __('iFeed-error: Duplicate function
 								ifeed_update_options_db($ifeed['id'], array(
 									'online_posts' => json_encode($online_posts),
 									'log_posts' => json_encode($log_posts),
-									'offset' => ($query['offset']+1)
+									'offset' => ($offset+1)
 								), array(
 									'%s',
 									'%s',
