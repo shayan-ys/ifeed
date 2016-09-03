@@ -95,15 +95,9 @@ if(function_exists('ifeed_ajax_post_loader')) {wp_die( __('iFeed-error: Duplicat
 				foreach($log_posts as $log_post) {
 					if( isset($log_post['promissed_exec_time']) && date( "Y-m-d H", strtotime($log_post['promissed_exec_time']) ) == $curr_day_hour ) {
 						$duplicated_in_hour = "duplicated_in:".$log_post['promissed_exec_time'];
-						echo $duplicated_in_hour;
 					}
 				}
 			}
-		}
-		
-		$last_run_in_log = false;
-		if(isset($_POST['last_run_in_log']) && strlen($_POST['last_run_in_log'])>10) {
-			$last_run_in_log = $_POST['last_run_in_log'];
 		}
 		
 		$hours_set = false;
@@ -113,7 +107,6 @@ if(function_exists('ifeed_ajax_post_loader')) {wp_die( __('iFeed-error: Duplicat
 				sort($hours_set);
 				$ifeed_execution_hour_index = false;
 				for( $i=0; $i<count($hours_set); $i++ ) {
-					echo "duplicated: ".intval($duplicated_in_hour). ", curr_hour: ".$curr_hour.", hours_set[i]: ".$hours_set[$i]. " | ";
 					if(( $duplicated_in_hour==false && $curr_hour == $hours_set[$i] ) ||
 					($curr_hour < $hours_set[$i])) {
 						$ifeed_execution_hour_index = $i;

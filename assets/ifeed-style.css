@@ -31,6 +31,8 @@
 /** List Table **/
 .ifeed-table-list .wp-list-table .ifeed-list-deactive, .ifeed-table-list .wp-list-table .ifeed-list-active {background: #009C67 none repeat scroll 0 0;border-radius: 50%;display: block;height: 12px;width: 12px;color:transparent;}
 .ifeed-table-list .wp-list-table .ifeed-list-deactive {background: #D91F0F none repeat scroll 0 0;}
+.ifeed-table-list .wp-list-table .column-slug {width:auto!important;}
+.ifeed-table-list #post-body.columns-2 {margin-left:0!important;}
 
 /** GENERAL **/
 [name="ifeed-settings"] input.error {border-color: #d9534f!important;}
