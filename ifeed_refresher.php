@@ -25,9 +25,17 @@ if(function_exists('ifeed_refresher')) {die( __('iFeed-error: Duplicate function
 					if( isset($manual_post_next['exec_time']) && $curr_day_hour == $manual_post_next['exec_time'] ) {
 						// now it's the time!
 						echo "<br />now its the time!";
+						
+						// pop from beginning of manual_posts queue
 						array_shift($manual_posts);
-						// pop from beginning of online_posts
-						array_shift($online_posts);						
+						if( count($online_posts) >= $ifeed['visible_size'] ) {
+							$current_count = count($online_posts);
+							for($i=0; $i< $current_count-$ifeed['visible_size']+1; $i++ ) {
+								// pop from beginning of online_posts
+								array_shift($online_posts);
+							}
+						}
+						
 						// add at end of online_posts
 						array_push($online_posts, intval($manual_post_next['post_id']));
 						// log this addition to ifeed
@@ -95,8 +103,6 @@ if(function_exists('ifeed_refresher')) {die( __('iFeed-error: Duplicate function
 								
 							if($next_post_id==false) {
 								$posts = new WP_Query($query);
-								// var_dump($query);
-								// var_dump($posts);
 								if ( strlen(serialize($posts))>0 &&  $posts->have_posts() ) :
 									while ( $posts->have_posts() ) : $posts->the_post();
 										$next_post_id = get_the_ID();
@@ -110,8 +116,14 @@ if(function_exists('ifeed_refresher')) {die( __('iFeed-error: Duplicate function
 						} catch(Exception $e) {echo "Exception:". $e->getMessage(); die();}
 						
 						if($next_post_id !== false) {
-							// pop from beginning of online_posts
-							array_shift($online_posts);						
+							
+							if( count($online_posts) >= $ifeed['visible_size'] ) {
+								$current_count = count($online_posts);
+								for($i=0; $i< $current_count-$ifeed['visible_size']+1; $i++ ) {
+									// pop from beginning of online_posts
+									array_shift($online_posts);
+								}
+							}
 							// add at end of online_posts
 							array_push($online_posts, intval($next_post_id));
 							// log this addition to ifeed

@@ -16,6 +16,7 @@ function ifeed_create_table_db($table_name) {
 		log_posts TEXT,
 		agent TEXT NOT NULL,
 		active INT NOT NULL,
+		visible_size INT DEFAULT 1,
 		PRIMARY KEY  (id)
 	) ". $charset_collate .";";
 	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
@@ -57,7 +58,8 @@ if(function_exists('ifeed_save_options_db')) {wp_die( __('iFeed-error: Duplicate
 				'user_display_name' => $current_user->display_name,
 				'http_user_agent' => $_SERVER['HTTP_USER_AGENT']
 			)),
-			'active' => $vals['ifeed-active']
+			'active' => $vals['ifeed-active'],
+			'visible_size' => $vals['ifeed-visible-count']
 		);
 			
 		$query_format = array(
@@ -68,6 +70,7 @@ if(function_exists('ifeed_save_options_db')) {wp_die( __('iFeed-error: Duplicate
 			'%s',
 			'%s',
 			'%s',
+			'%d',
 			'%d'
 		);
 		
@@ -174,6 +177,7 @@ function ifeed_get_options_db($ifeed_id, $output=ARRAY_A) {
 			$result['ifeed-utm'] = isset($result['utm'])? $result['utm'] : "";
 			$result['ifeed-desc'] = isset($result['description'])? $result['description'] : "";
 			$result['ifeed-active'] = isset($result['active'])? $result['active'] : "";
+			$result['ifeed-visible-count'] = isset($result['visible_size'])? $result['visible_size'] : "";
 			if(isset($result['manual']) && $result['manual']=="1") {
 				$result['ifeed-query-manual'] = "1";
 				$result['ifeed-manual-posts'] = isset($result['query'])? $result['query'] : "";

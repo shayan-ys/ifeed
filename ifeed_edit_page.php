@@ -117,7 +117,13 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 							<td><fieldset><p> 
 								<textarea name="ifeed-desc" rows="3" placeholder="Describe what this iFeed is"><?php echo $vals['ifeed-desc']; ?></textarea>
 							</fieldset></td></p>
-						</tr>					
+						</tr>
+						<tr valign="top">
+							<th scope="row"><?php _e("iFeed visible Count:"); ?></th>
+							<td><fieldset><p> 
+								<input type="number" name="ifeed-visible-count" placeholder="Count of iFeeds visible" value="<?php echo $vals['ifeed-visible-count']; ?>" />
+							</fieldset></td></p>
+						</tr>
 					</tbody>
 				</table>
 				<hr />
