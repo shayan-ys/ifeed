@@ -15,7 +15,7 @@ if(function_exists('ifeed_refresher')) {die( __('iFeed-error: Duplicate function
 					// is manual.
 					echo " is manual";
 					$manual_posts = json_decode($ifeed['query'], true);
-					if(count($manual_posts)<1) {continue; die("null");}
+					if(count($manual_posts)<1) {continue; die("continue command didn't work");}
 					$online_posts = (isset($ifeed['online_posts']) && $ifeed['online_posts']!=null)? json_decode($ifeed['online_posts'], true) : array();
 					$log_posts = (isset($ifeed['log_posts']) && $ifeed['log_posts']!=null)? json_decode($ifeed['log_posts'], true) : array();
 					$manual_post_next = reset($manual_posts);
@@ -25,7 +25,11 @@ if(function_exists('ifeed_refresher')) {die( __('iFeed-error: Duplicate function
 					if( isset($manual_post_next['exec_time']) && $curr_day_hour == $manual_post_next['exec_time'] ) {
 						// now it's the time!
 						echo "<br />now its the time!";
-						
+						if( in_array($manual_post_next['post_id'], $online_posts) ) {
+							// duplicate post, exact same post is online
+							echo "<br/>duplicate post, exact same post is online";
+							continue; die("continue command didn't work");
+						}
 						// pop from beginning of manual_posts queue
 						array_shift($manual_posts);
 						if( count($online_posts) >= $ifeed['visible_size'] ) {
@@ -117,6 +121,11 @@ if(function_exists('ifeed_refresher')) {die( __('iFeed-error: Duplicate function
 						
 						if($next_post_id !== false) {
 							
+							if( in_array($next_post_id, $online_posts) ) {
+								// duplicate post, exact same post is online
+								echo "<br/>duplicate post, exact same post is online";
+								continue; die("continue command didn't work");
+							}
 							if( count($online_posts) >= $ifeed['visible_size'] ) {
 								$current_count = count($online_posts);
 								for($i=0; $i< $current_count-$ifeed['visible_size']+1; $i++ ) {

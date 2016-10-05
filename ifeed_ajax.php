@@ -15,6 +15,10 @@ if(function_exists('ifeed_ajax_go_online')) {wp_die( __('iFeed-error: Duplicate 
 		if( count($ifeed)<1 ) die("empty_ifeed");
 		$online_posts = (isset($ifeed['online_posts'])&&count(json_decode($ifeed['online_posts'],true))>0)? json_decode($ifeed['online_posts'],true) : array();
 		$log_posts = (isset($ifeed['log_posts'])&&count(json_decode($ifeed['log_posts'],true))>0)? json_decode($ifeed['log_posts'],true) : array();
+		if( in_array($post_id, $online_posts) ) {
+			// duplicate post, exact same post is online
+			die("update failed");
+		}
 		if( count($online_posts) >= $ifeed['visible_size'] ) {
 			$current_count = count($online_posts);
 			for($i=0; $i< $current_count-$ifeed['visible_size']+1; $i++ ) {
