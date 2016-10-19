@@ -15,6 +15,12 @@ if(function_exists('ifeed_ajax_go_online')) {wp_die( __('iFeed-error: Duplicate 
 		if( count($ifeed)<1 ) die("empty_ifeed");
 		$online_posts = (isset($ifeed['online_posts'])&&count(json_decode($ifeed['online_posts'],true))>0)? json_decode($ifeed['online_posts'],true) : array();
 		$log_posts = (isset($ifeed['log_posts'])&&count(json_decode($ifeed['log_posts'],true))>0)? json_decode($ifeed['log_posts'],true) : array();
+		$log_posts_limit = 10;
+		if( count($log_posts)>$log_posts_limit ) {
+			$log_posts_to_file = array_slice($log_posts,0,-$log_posts_limit); // return first log_posts items before last 10 in the array
+			$log_posts = array_slice($log_posts,-$log_posts_limit);  // returns 10 items from the end of log_posts
+			file_put_contents(plugin_dir_path( __FILE__ ) . '/log_posts.txt', "{'ifeed-id', '".$ifeed['id']."'}\n".json_encode($log_posts_to_file)."\n", FILE_APPEND | LOCK_EX);
+		}
 		if( in_array($post_id, $online_posts) ) {
 			// duplicate post, exact same post is online
 			die("update failed");
@@ -54,7 +60,10 @@ if(function_exists('ifeed_ajax_go_online')) {wp_die( __('iFeed-error: Duplicate 
 			if($result) {
 				$post = null;
 				try{
-					$post = new WP_Query(array('p'=> $post_id ));
+					$query = array();
+					$query['p'] = $post_id;
+					$query['post_type'] = array('post', 'page');
+					$post = new WP_Query($query);
 				} catch(Exception $e) { echo "failed, Exception:". $e->getMessage();}
 				if ( strlen(serialize($post))>0 &&  $post->have_posts() ) :
 					while ( $post->have_posts() ) : $post->the_post();
@@ -162,6 +171,8 @@ if(function_exists('ifeed_ajax_post_loader')) {wp_die( __('iFeed-error: Duplicat
 			$query['ignore_sticky_posts'] = 1;
 			$query['caller_get_posts'] = 1;
 		}
+		
+		$query['post_type'] = array('post', 'page');
 		
 		$posts = null;
 		try{

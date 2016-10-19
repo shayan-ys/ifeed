@@ -25,6 +25,7 @@ echo '<?xml version="1.0" encoding="'.get_option('blog_charset').'"?'.'>';
 			$online_posts = json_decode($ifeed['online_posts'], true);
 			if(is_array($online_posts) && count($online_posts)>0) {
 				$ifeed_posts = new WP_Query(array(
+					'post_type' => array('post', 'page'),
 					'order' => 'ASC',
 					'post__not_in' => get_option( 'sticky_posts' ),
 					'post__in' => $online_posts

@@ -117,7 +117,7 @@ jQuery(document).ready(function($){
 		var tr_wrapper = td_id_wrapper.closest("tr");
 		var data_id = tr_wrapper.find('[data-name="exec-time"]').attr("data-id");
 		var old_exec_time = tr_wrapper.find('[data-name="exec-time"]').val();
-		query.post_type = "post";
+		// query.post_type = "post";
 		query.post_status = "publish";
 		query.p = $(this).val();
 		if( $(this).val().length < 1 ) { td_id_wrapper.find("input").addClass("error"); return; }

@@ -18,6 +18,12 @@ if(function_exists('ifeed_refresher')) {die( __('iFeed-error: Duplicate function
 					if(count($manual_posts)<1) {continue; die("continue command didn't work");}
 					$online_posts = (isset($ifeed['online_posts']) && $ifeed['online_posts']!=null)? json_decode($ifeed['online_posts'], true) : array();
 					$log_posts = (isset($ifeed['log_posts']) && $ifeed['log_posts']!=null)? json_decode($ifeed['log_posts'], true) : array();
+					$log_posts_limit = 10;
+					if( count($log_posts)>$log_posts_limit ) {
+						$log_posts_to_file = array_slice($log_posts,0,-$log_posts_limit); // return first log_posts items before last 10 in the array
+						$log_posts = array_slice($log_posts,-$log_posts_limit);  // returns 10 items from the end of log_posts
+						file_put_contents(plugin_dir_path( __FILE__ ) . '/log_posts.txt', "{'ifeed-id', '".$ifeed['id']."'}\n".json_encode($log_posts_to_file)."\n", FILE_APPEND | LOCK_EX);
+					}
 					$manual_post_next = reset($manual_posts);
 					if(isset($manual_post_next['exec_time'])) { $manual_post_next['exec_time'] = date("Y-m-d H:00", strtotime($manual_post_next['exec_time'])); }
 					$curr_day_hour = $now->format('Y-m-d H:00');
@@ -106,6 +112,7 @@ if(function_exists('ifeed_refresher')) {die( __('iFeed-error: Duplicate function
 							}
 								
 							if($next_post_id==false) {
+								$query['post_type'] = array('post', 'page');
 								$posts = new WP_Query($query);
 								if ( strlen(serialize($posts))>0 &&  $posts->have_posts() ) :
 									while ( $posts->have_posts() ) : $posts->the_post();
@@ -120,7 +127,6 @@ if(function_exists('ifeed_refresher')) {die( __('iFeed-error: Duplicate function
 						} catch(Exception $e) {echo "Exception:". $e->getMessage(); die();}
 						
 						if($next_post_id !== false) {
-							
 							if( in_array($next_post_id, $online_posts) ) {
 								// duplicate post, exact same post is online
 								echo "<br/>duplicate post, exact same post is online";
@@ -135,6 +141,12 @@ if(function_exists('ifeed_refresher')) {die( __('iFeed-error: Duplicate function
 							}
 							// add at end of online_posts
 							array_push($online_posts, intval($next_post_id));
+							$log_posts_limit = 10;
+							if( count($log_posts)>$log_posts_limit ) {
+								$log_posts_to_file = array_slice($log_posts,0,-$log_posts_limit); // return first log_posts items before last 10 in the array
+								$log_posts = array_slice($log_posts,-$log_posts_limit);  // returns 10 items from the end of log_posts
+								file_put_contents(plugin_dir_path( __FILE__ ) . '/log_posts.txt', "{'ifeed-id', '".$ifeed['id']."'}\n".json_encode($log_posts_to_file)."\n", FILE_APPEND | LOCK_EX);
+							}
 							// log this addition to ifeed
 							array_push($log_posts, array(
 								'post_id' => $next_post_id,
