@@ -251,14 +251,14 @@ if(function_exists('ifeed_options_page_edit')) {wp_die( __('iFeed-error: Duplica
 								if(isset($vals['log_posts']))
 									$vals['log_posts'] = json_decode($vals['log_posts'], true);
 								if( is_array($vals['log_posts']) && count($vals['log_posts'])>0 ) {
-									$vals['log_posts'] = array_slice($vals['log_posts'], -5);
+									$vals['log_posts'] = array_slice($vals['log_posts'], -$log_posts_limit);
 									// $vals['log_posts'] = array_reverse($vals['log_posts']);
 									$i=0;
 									foreach( $vals['log_posts'] as $index=>$log_post ) {
 										// if($i++ >= $log_posts_limit) break;
 										$post = null;
 										try{
-											$post = new WP_Query(array('p'=> $log_post['post_id'] ));
+											$post = new WP_Query(array('p'=> $log_post['post_id'] , 'post_type'=>array('post', 'page') ));
 										} catch(Exception $e) { echo "Exception:". $e->getMessage();}
 										if ( strlen(serialize($post))>0 &&  $post->have_posts() ) :
 											while ( $post->have_posts() ) : $post->the_post();
